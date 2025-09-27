@@ -11,6 +11,7 @@ import shutil
 import json
 import getpass
 import data_engine as engine
+from L2_fitting import cal_E_dist as cal
 
 def initialize_project(jobs):
     """
@@ -91,7 +92,7 @@ def initialize_project(jobs):
     key_values.append(("num_s", num_s))
 
     # Variable for max number of msa's
-    m_e_msa = 32
+    m_e_msa = 40
     m_msa = m_e_msa // 2
     key_values.append(("m_e_msa", m_e_msa))
     key_values.append(("m_msa", m_msa))
@@ -251,46 +252,44 @@ def filter_output(run_number, jobs, script_path):
     Updates template directory for next ColabFold iteration accordingly.
 
     Args:
-        run_number (int): The current recycle iteration number.
+        run_number (int): The current iteration number.
         jobs (str): Path to the job metadata JSON file.
         script_path (str): Path to the ColabFold execution script.
     """
-    # Load json and obtain outputdir name
-    """
-    try:
-        with open(jobs, "r") as f:
-            jobs_dict = json.load(f)
-            current_job = jobs_dict["jobs"][-1]
-            current_job_values = list(current_job.values())
-            outputdir = current_job_values[-1]
-            temp_dir = current_job_values[3]
-
-    except FileNotFoundError:
-        print("###### JSON FILE NOT FOUND ######")
-        exit()
-    """
+    # Load json and obtain outputdir and temp_dir
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
         
     current_dir = os.getcwd()
     colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
+
+   # Loop through files and run DistanceFinder.py on each
+    distances = {}
+    for file in colabfold_output:
+        if file.endswith(".pdb"):
+            distances[file] = run_distance_finder(f"{outputdir}/{file}", "100", "473")
+    plot_and_save_distances(distances, run_number)
+
+    e_distances = {}
+    #TODO: extract distances from dictionary, convert to 1d array, use cal_E_dist, and replace old distances with e distances
+
+    # Convert distances to FRET efficiencies and save to file
+    y_exp = 0.291
+    sigma = 0.083
+    with open("distances.input", "w") as file:
+        file.write(f"{y_exp}, {sigma}")
+        for distance in distances.keys():
+            file.write(distance)
+            # TODO:finish implementation 
+
 
     """
     Filter to include +- 10 angstrom
     If no templates fall within range increase range to 20
     Cap at 20
     Print number of templates within range and their distances
-    """
-    # Loop through files and run DistanceFinder.py on each
-    distances = {}
-    for file in colabfold_output:
-        if file.endswith(".pdb"):
-            #distances.append((run_distance_finder(f"{outputdir}/{file}", "100", "473"), file))
-            distances[run_distance_finder(f"{outputdir}/{file}", "100", "473")] = file
-
-    plot_and_save_distances(distances, run_number)
-
+    
+ 
     # Filter files to only include probe distances +- 10 angstrom
-    # Only include maximum of 9 files, sort by distance and take 9 best
     included_distances = {}
     for distance, filename in distances.items():
         if abs(float(distance) - 68.4) < 10:
@@ -300,17 +299,20 @@ def filter_output(run_number, jobs, script_path):
         for distance, filename in distances.items():
             if abs(float(distance) - 68.4) < 20:
                 included_distances[distance] = filename
+    """
+    """
+    # Executes an algorithm for choosing best available seeds for a gaussian distribution
+    included_distances = engine.choose_gaussian_distances(distances, 52, 2, 30)
+    """
 
-    # If included_distances dictionary is still empty after both checks,
+
+    # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
         print("###### NO VALID TEMPLATES PRODUCED ######")
         update_temp_dir(script_path, temp_dir)
     else:
-        # Sort included_distances by shortest distance
-        included_distances = dict(sorted(included_distances.items()))
-
-        temp_dir = f"recycle{run_number + 1}"
+        temp_dir = f"iteration{run_number + 1}"
         try:
             os.mkdir("iterations")
             print(">>> CREATING DIRECTORY FOR BEST TEMPLATES")
@@ -323,9 +325,8 @@ def filter_output(run_number, jobs, script_path):
             shutil.rmtree(f"iterations/{temp_dir}")
             os.mkdir(f"iterations/{temp_dir}")
 
-        # TODO: change naming convention to be from 0000.pdb to 9999.pdb
         template_number = 0
-        for distance, filename in included_distances.items():
+        for filename, distance in included_distances.items():
             subprocess.run(["cp", f"{outputdir}/{filename}", f"iterations/{temp_dir}"])
             template_number_str = f"{template_number}"
             while len(template_number_str) < 4:
@@ -333,13 +334,14 @@ def filter_output(run_number, jobs, script_path):
             subprocess.run(["mv", f"iterations/{temp_dir}/{filename}", f"iterations/{temp_dir}/{template_number_str}.pdb"])
             print(f"###### {filename} ADDED TO {temp_dir} ({distance} A) ######")
             template_number = template_number + 1
+    
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
         if run_number < 2:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
-    
+
 
 def run_distance_finder(structure_file, p1, p2):
     """
@@ -411,7 +413,6 @@ def main():
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
 
-    #delete_directory("./iterations/")
     for run_number in range(3):
         """
         Start with three iterations for testing
@@ -420,6 +421,7 @@ def main():
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
         filter_output(run_number, jobs, script_path)
+
     # Move iterations directory into output directory to save results
         
     outputdir = get_from_current_job(jobs, ["outputdir"])[0]
