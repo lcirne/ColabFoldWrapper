@@ -6,21 +6,30 @@ Ma Lab
 """
 
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 import pandas as pd
 import numpy as np
-import math
-from typing import Dict, List, Union, Tuple
+import random
+import os
+from collections import defaultdict
 
-def graph_output_accuracy(distances: dict) -> str:
+
+def compute_E(distances, R_0=51):
+    for i in range(len(distances)):
+        distances[i] = float(1 / (1 + (distances[i] / R_0)**6))
+    return distances
+
+
+def graph_output_accuracy(distances: dict, bins=0.05, graph_name=None) -> str:
     # Collect and convert distances
-    dist_values = [float(d) for d in distances.keys()]
+    dist_values = [float(d) for d in distances.values()]
 
     # Define bin range: from 5 below min to 5 above max, in steps of 10
     min_d = min(dist_values)
     max_d = max(dist_values)
-    bin_start = np.floor(min_d - 5)
-    bin_end = np.ceil(max_d + 5)
-    bin_edges = np.arange(bin_start, bin_end + 10, 10)  # +10 to include final edge
+    bin_start = 0
+    bin_end = np.ceil(max_d)
+    bin_edges = np.arange(bin_start, bin_end, bins)
 
     # Plot
     plt.figure(figsize=(8, 5))
@@ -28,181 +37,109 @@ def graph_output_accuracy(distances: dict) -> str:
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
-    plt.xticks(bin_edges)
+    xticks = np.arange(0, bin_end, 0.1)
+    plt.xticks(xticks)
     plt.tight_layout()
 
     # Save
     plot_name = "iteration_distances_hist"
+    if graph_name:
+        plot_name = graph_name
     plt.savefig(f"{plot_name}.png")
     return plot_name
 
 
-def _normal_cdf(x: float, mu: float, sigma: float) -> float:
-    if sigma <= 0:
-        raise ValueError("sigma must be > 0")
-    z = (x - mu) / (sigma * math.sqrt(2))
-    return 0.5 * (1.0 + math.erf(z))
-
-def _bucket_index(x: float, mean: float, bucket_size: float) -> int:
-    # Central bucket is [mean - b/2, mean + b/2)
-    start = mean - bucket_size / 2.0
-    return math.floor((x - start) / bucket_size)
-
-def _bucket_bounds(idx: int, mean: float, bucket_size: float) -> Tuple[float, float]:
-    start = mean - bucket_size / 2.0
-    lo = start + idx * bucket_size
-    hi = lo + bucket_size
-    return lo, hi
-
-def _as_multimap(pool: Dict[float, Union[str, List[str]]]) -> Dict[float, List[str]]:
-    multi = {}
-    for dist, val in pool.items():
-        if isinstance(val, list):
-            files = val
-        else:
-            files = [val]
-        multi.setdefault(dist, []).extend(files)
-    return multi
-
-
-def _largest_remainder_apportion(N: int,
-                                 probs: Dict[int, float],
-                                 caps: Dict[int, int]) -> Dict[int, int]:
-    # Initial floor allocation
-    quotas = {i: min(caps[i], int(math.floor(N * probs[i]))) for i in probs}
-    allocated = sum(quotas.values())
-    remainder = N - allocated
-    if remainder <= 0:
-        return quotas
-
-    # Largest remainder while honoring caps
-    # Tie-breaker: smaller |bucket center - mean| preferred (we’ll inject later)
-    remainders = {i: (N * probs[i] - quotas[i]) for i in probs}
-    while remainder > 0:
-        # Candidates that still have room
-        cands = [i for i in probs if quotas[i] < caps[i]]
-        if not cands:
-            break
-        # Pick the one with largest fractional remainder
-        cands.sort(key=lambda i: remainders[i], reverse=True)
-        for i in cands:
-            if remainder == 0:
-                break
-            if quotas[i] < caps[i]:
-                quotas[i] += 1
-                remainder -= 1
-    return quotas
-
-
-def choose_gaussian_distances(
-    pool: Dict[float, Union[str, List[str]]],
+def build_distribution(
+    file_eff_dict: dict,
     mean: float,
-    bucket_size: float,
-    sigma: float = None,
-    target_total: int = None,
-) -> Dict[float, List[str]]:
-    """
-    Select items whose distances approximate a Gaussian distribution.
+    std: float,
+    bin_width: float = 0.05,
+    seed: int = None
+) -> dict:
 
-    Parameters
-    ----------
-    pool : dict[distance -> filename or list[filename]]
-        Distances can repeat by providing a list of filenames for that distance.
-    mean : float
-        Center of the desired Gaussian.
-    bucket_size : float
-        Width of each bucket (central bucket is [mean - b/2, mean + b/2)).
-    sigma : float, optional
-        Standard deviation of the Gaussian. Defaults to bucket_size.
-    target_total : int, optional
-        Desired total number of items to select. If None, the algorithm
-        chooses the maximum N that fits Gaussian proportions without
-        exceeding any bucket's capacity.
+    """
+    Selects file-efficiency pairs such that their histogram best follows a Gaussian distribution defined by the provided mean and standard deviation.
+
+    Parameters:
+        file_eff_dict : dict
+            Dictionary of {filename: efficiency}, where efficiency is a float.
+        mean : float
+            Mean value for the target Gaussian distribution.
+        std : float
+            Standard deviation for the target Gaussian distribution.
+        bin_width : float, optional
+            Width of histogram bins. Default is 5.
+        seed : int, optional
+            Random seed for reproducibility. Default is 42.
 
     Returns
-    -------
-    dict[distance -> list[filenames]]
-        Only the chosen items.
+        dict: Dictionary of {filename: efficiency} containing the selected
+            file-efficiency pairs adjusted to match the Gaussian distribution.
     """
-    if bucket_size <= 0:
-        raise ValueError("bucket_size must be > 0")
-    if not pool:
-        return {}
 
-    if sigma is None:
-        sigma = bucket_size
+    # Set seeds for reproducibility
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
 
-    multi = _as_multimap(pool)
+    # Extract efficiencies
+    efficiencies = np.array(list(file_eff_dict.values()))
+    filenames = np.array(list(file_eff_dict.keys()))
+    N = len(efficiencies)
 
-    # Build per-item list, then bucket them
-    items: List[Tuple[float, str]] = []
-    for d, files in multi.items():
-        for f in files:
-            items.append((float(d), f))
+    # Define bin edges across observed range
+    min_val, max_val = efficiencies.min(), efficiencies.max()
+    bins = np.arange(min_val, max_val + bin_width, bin_width)
 
-    # Determine bucket indices for all items
-    buckets: Dict[int, List[Tuple[float, str]]] = {}
-    for d, f in items:
-        idx = _bucket_index(d, mean, bucket_size)
-        buckets.setdefault(idx, []).append((d, f))
+    # Bin assignments for each efficiency
+    bin_indices = np.digitize(efficiencies, bins) - 1
 
-    # Capacities per bucket
-    caps = {idx: len(v) for idx, v in buckets.items()}
+    # Compute bin centers
+    bin_centers = bins[:-1] + bin_width / 2
 
-    # Gaussian mass per bucket (only where we have capacity)
-    weights = {}
-    for idx, cap in caps.items():
-        lo, hi = _bucket_bounds(idx, mean, bucket_size)
-        w = _normal_cdf(hi, mean, sigma) - _normal_cdf(lo, mean, sigma)
-        weights[idx] = max(0.0, w)
+    # --- Step 3: Compute Gaussian-based target counts ---
+    gauss_probs = np.exp(-0.5 * ((bin_centers - mean) / std) ** 2)
+    gauss_probs /= gauss_probs.sum()  # normalize
+    target_counts = np.round(gauss_probs * N).astype(int)
 
-    # Normalize over non-empty buckets with positive weight
-    positive = {i: w for i, w in weights.items() if w > 0 and caps[i] > 0}
-    if not positive:
-        # Fallback: equal weights across non-empty buckets
-        positive = {i: 1.0 for i in caps.keys() if caps[i] > 0}
+    # Adjust for rounding (so sum == N)
+    diff = N - target_counts.sum()
+    if diff != 0:
+        # fix by adjusting the bin with the highest probability
+        target_counts[np.argmax(gauss_probs)] += diff
 
-    total_w = sum(positive.values())
-    probs = {i: positive[i] / total_w for i in positive}
+    # Group files by bin
+    bin_to_files = defaultdict(list)
+    for fname, eff, bidx in zip(filenames, efficiencies, bin_indices):
+        bin_to_files[bidx].append((fname, eff))
 
-    total_available = sum(caps.values())
-    if target_total is None:
-        # Max N that doesn't exceed any bucket capacity in expectation
-        N_float_limits = [caps[i] / probs[i] for i in probs]
-        N = int(math.floor(min(N_float_limits)))
-        N = max(0, min(N, total_available))
-    else:
-        N = max(0, min(int(target_total), total_available))
+    # Collect selected filename-efficiency pairs
+    selected = {}
+    dupe_counter = defaultdict(int)
 
-    if N == 0:
-        return {}
+    for bidx, desired_count in enumerate(target_counts):
+        available_files = bin_to_files.get(bidx, [])
 
-    # Apportion counts to buckets
-    quotas = _largest_remainder_apportion(N, probs, caps)
-
-    # Within-bucket selection: pick closest-to-mean first
-    selected_pairs: List[Tuple[float, str]] = []
-    for idx, need in quotas.items():
-        if need <= 0:
+        if desired_count == 0:
             continue
-        lo, hi = _bucket_bounds(idx, mean, bucket_size)
-        # Sort by closeness to mean, then by closeness to bucket center toward mean
-        bucket_items = buckets[idx]
-        # Secondary tiebreaker: distance from mean, then from central line
-        bucket_items.sort(key=lambda t: (abs(t[0] - mean), abs((lo + hi) / 2.0 - mean), t[0], t[1]))
-        selected_pairs.extend(bucket_items[:need])
 
-    # Aggregate back to {distance: [filenames]}
-    out: Dict[float, List[str]] = {}
-    for d, f in selected_pairs:
-        out.setdefault(d, []).append(f)
-    return out
+        if len(available_files) >= desired_count:
+            # Too many files, sample down
+            chosen = random.sample(available_files, desired_count)
+        else:
+            # Too few files, duplicate as needed
+            multiplier = -(-desired_count // len(available_files))  # ceiling division
+            extended = available_files * multiplier
+            chosen = random.sample(extended, desired_count)
 
+        # Add chosen pairs with dupe suffixes if needed
+        for fname, eff in chosen:
+            if fname in selected:
+                dupe_counter[fname] += 1
+                name, ext = os.path.splitext(fname)
+                new_fname = f"{name}_dupe{dupe_counter[fname]}{ext}"
+                selected[new_fname] = eff
+            else:
+                selected[fname] = eff
 
-def explode_distances(selection: Dict[float, List[str]]) -> List[float]:
-    """Helper: flatten selection to a list of distances (one per selected filename)."""
-    result = []
-    for d, files in selection.items():
-        result.extend([d] * len(files))
-    # Optional: sort for readability
-    return sorted(result)
+    return selected

@@ -11,7 +11,7 @@ import shutil
 import json
 import getpass
 import data_engine as engine
-from L2_fitting import cal_E_dist as cal
+import cal_E_dist as cal
 
 def initialize_project(jobs):
     """
@@ -269,42 +269,21 @@ def filter_output(run_number, jobs, script_path):
             distances[file] = run_distance_finder(f"{outputdir}/{file}", "100", "473")
     plot_and_save_distances(distances, run_number)
 
-    e_distances = {}
-    #TODO: extract distances from dictionary, convert to 1d array, use cal_E_dist, and replace old distances with e distances
+    distances_to_convert = np.array(list(distances.values()))
+    e_conversions = cal.compute_E(distances_to_convert)
+    i = 0
+    for filename, distance in distances.items():
+        distances[filename] = e_conversions[i]
+        i += 1
 
-    # Convert distances to FRET efficiencies and save to file
+    # TODO:finish implementation:
+    # write algorithm to determine which files to extract from distances
+    # and add to included_distances to fit a normal distribution
+    # remember to normalize data points
+    # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    with open("distances.input", "w") as file:
-        file.write(f"{y_exp}, {sigma}")
-        for distance in distances.keys():
-            file.write(distance)
-            # TODO:finish implementation 
-
-
-    """
-    Filter to include +- 10 angstrom
-    If no templates fall within range increase range to 20
-    Cap at 20
-    Print number of templates within range and their distances
-    
- 
-    # Filter files to only include probe distances +- 10 angstrom
-    included_distances = {}
-    for distance, filename in distances.items():
-        if abs(float(distance) - 68.4) < 10:
-            included_distances[distance] = filename
-    # Check for any files with a distance below 10
-    if not included_distances:
-        for distance, filename in distances.items():
-            if abs(float(distance) - 68.4) < 20:
-                included_distances[distance] = filename
-    """
-    """
-    # Executes an algorithm for choosing best available seeds for a gaussian distribution
-    included_distances = engine.choose_gaussian_distances(distances, 52, 2, 30)
-    """
-
+    included_distances = build_distribution(distances_dict=distances, mean=y_exp, std=sigma)
 
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 

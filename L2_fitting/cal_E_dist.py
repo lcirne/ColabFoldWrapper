@@ -1,7 +1,8 @@
 import numpy as np
-def compute_E(R_DA, R_0):
-    E = 1 / (1 + (R_DA / R_0)**6)
-    return E
+def compute_E(distances, R_0=51):
+    for i in range(len(distances)):
+        distances[i] = 1 / (1 + (distances[i] / R_0)**6)
+    return distances
 
 R_0 = 51
 
