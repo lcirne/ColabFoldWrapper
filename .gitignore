@@ -3,3 +3,6 @@ testing/*
 open_rbf_match.png
 open_weights_rbf.txt
 todo.txt
+.venv
+.png
+.pyc
