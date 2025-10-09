@@ -276,7 +276,7 @@ def filter_output(run_number, jobs, script_path):
         distances[filename] = e_conversions[i]
         i += 1
 
-    # TODO:finish implementation:
+    # Finished implementation:
     # write algorithm to determine which files to extract from distances
     # and add to included_distances to fit a normal distribution
     # remember to normalize data points
@@ -376,7 +376,6 @@ def main():
     """
     Entry point for the ColabFold Wrapper.
     Initializes project setup and executes the template filtering loop.
-    TODO: Changes all uses of recycles in directories to 'iterations'
     """
 
     # Welcome message
