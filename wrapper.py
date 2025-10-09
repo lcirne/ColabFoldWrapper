@@ -10,8 +10,8 @@ import subprocess
 import shutil
 import json
 import getpass
+import numpy as np
 import data_engine as engine
-import cal_E_dist as cal
 
 def initialize_project(jobs):
     """
@@ -266,16 +266,16 @@ def filter_output(run_number, jobs, script_path):
     distances = {}
     for file in colabfold_output:
         if file.endswith(".pdb"):
-            distances[file] = run_distance_finder(f"{outputdir}/{file}", "100", "473")
-    plot_and_save_distances(distances, run_number)
+            distances[file] = float(run_distance_finder(f"{outputdir}/{file}", "100", "473"))
 
     distances_to_convert = np.array(list(distances.values()))
-    e_conversions = cal.compute_E(distances_to_convert)
+    e_conversions = engine.compute_E(distances_to_convert)
     i = 0
     for filename, distance in distances.items():
         distances[filename] = e_conversions[i]
         i += 1
 
+    plot_and_save_distances(distances, run_number)
     # Finished implementation:
     # write algorithm to determine which files to extract from distances
     # and add to included_distances to fit a normal distribution
@@ -283,8 +283,7 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances = build_distribution(distances_dict=distances, mean=y_exp, std=sigma)
-
+    included_distances = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -306,6 +305,15 @@ def filter_output(run_number, jobs, script_path):
 
         template_number = 0
         for filename, distance in included_distances.items():
+            # TODO: Write logic to check if a filename is duplicated or not
+            # if so, cp the original file with new name and add to temp_dir
+            # if not, just cp original file to temp_dir
+            if "_dupe" in filename:
+                seperator = "_dupe"
+                filename_parts = filename.split(seperator, 1)
+                original_filename = f"{filename_parts[0]}.pdb"
+                subprocess.run(["cp", f"{outputdir}/{original_filename}", f"{outputdir}/{filename}"])
+
             subprocess.run(["cp", f"{outputdir}/{filename}", f"iterations/{temp_dir}"])
             template_number_str = f"{template_number}"
             while len(template_number_str) < 4:
@@ -366,10 +374,10 @@ def update_temp_dir(script_path, dir_name):
 
 
 def plot_and_save_distances(distances, run_number):
-        os.makedirs("distance_distributions", exist_ok=True)
-        plot_name = f"{engine.graph_output_accuracy(distances)}"
-        subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
-        return 0
+    os.makedirs("distance_distributions", exist_ok=True)
+    plot_name = f"{engine.graph_output_accuracy(distances)}"
+    subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
+    return 0
 
 
 def main():

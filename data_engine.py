@@ -22,18 +22,21 @@ def compute_E(distances, R_0=51):
 
 def graph_output_accuracy(distances: dict, bins=0.05, graph_name=None) -> str:
     # Collect and convert distances
-    dist_values = [float(d) for d in distances.values()]
+    effs = np.array([float(d) for d in distances.values()])
 
     # Define bin range: from 5 below min to 5 above max, in steps of 10
-    min_d = min(dist_values)
-    max_d = max(dist_values)
+    min_d = min(effs)
+    max_d = max(effs)
     bin_start = 0
     bin_end = np.ceil(max_d)
     bin_edges = np.arange(bin_start, bin_end, bins)
 
+    # Debug
+    print(effs.min(), effs.max())
+    print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(dist_values, bins=bin_edges, edgecolor="black", color="skyblue")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
@@ -81,7 +84,6 @@ def build_distribution(
     if seed is not None:
         np.random.seed(seed)
         random.seed(seed)
-
     # Extract efficiencies
     efficiencies = np.array(list(file_eff_dict.values()))
     filenames = np.array(list(file_eff_dict.keys()))
@@ -120,7 +122,7 @@ def build_distribution(
     for bidx, desired_count in enumerate(target_counts):
         available_files = bin_to_files.get(bidx, [])
 
-        if desired_count == 0:
+        if desired_count == 0 or len(available_files) == 0:
             continue
 
         if len(available_files) >= desired_count:
