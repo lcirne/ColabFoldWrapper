@@ -274,6 +274,7 @@ def filter_output(run_number, jobs, script_path):
     for filename, distance in distances.items():
         distances[filename] = e_conversions[i]
         i += 1
+
     plot_and_save_distances(distances, run_number)
     # Finished implementation:
     # write algorithm to determine which files to extract from distances
@@ -383,7 +384,6 @@ def main():
     """
     Entry point for the ColabFold Wrapper.
     Initializes project setup and executes the template filtering loop.
-    TODO: Changes all uses of recycles in directories to 'iterations'
     """
 
     # Welcome message
