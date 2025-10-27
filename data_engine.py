@@ -20,29 +20,31 @@ def compute_E(distances, R_0=51):
     return distances
 
 
-def graph_output_accuracy(distances: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str:
     # Collect and convert distances
-    effs = np.array([float(d) for d in distances.values()])
+    effs = np.array([float(d) for d in efficiencies.values()])
 
-    # Define bin range: from 5 below min to 5 above max, in steps of 10
-    min_d = min(effs)
-    max_d = max(effs)
-    bin_start = np.ceil(min_d)
-    bin_end = np.ceil(max_d)
-    bin_edges = np.arange(bin_start, bin_end, bins)
+    # If bins is a float, treat it as bin width and generate edges
+    if isinstance(bins, float) or isinstance(bins, int):
+        min_d = effs.min()
+        max_d = effs.max()
+        bin_edges = np.arange(min_d, max_d + bins, bins)
+    else:
+        # If bins is an array (from build_distribution), use it directly
+        bin_edges = bins
 
     # Debug
     #print(effs.min(), effs.max())
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
-    # TODO: Ask chat to verify if bin_dges is equivalent to bin_indices from build_distribution
+    # TODO: Ask chat to verify if bin_edges is equivalent to bin_indices from build_distribution
     # Test using a bar plot where x value is bin centers and y value is counts
     plt.figure(figsize=(8, 5))
     plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
-    xticks = np.arange(0, bin_end, 0.1)
+    xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
 
@@ -155,4 +157,4 @@ def build_distribution(
         print(len(chosen))
         print(len(selected))
 
-    return selected
+    return selected, bins

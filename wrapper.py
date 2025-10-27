@@ -283,7 +283,7 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    included_distances, bins = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -399,7 +399,7 @@ def main():
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
 
-    for run_number in range(3):
+    for run_number in range(5):
         """
         Start with three iterations for testing
         Once running, continue iterating until an ideal structure is output
