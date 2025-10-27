@@ -122,7 +122,6 @@ colabfold_batch --pair-mode unpaired_paired --templates \\
 --custom-template-path $temp_dir \\
 --max-msa $m_msa:$m_e_msa \\
 --use-dropout \\
---random-seed $seed \\
 --num-seeds $num_s \\
 --num-recycle $num_c \\
 $inputfile $outputdir
