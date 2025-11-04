@@ -37,8 +37,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     #print(effs.min(), effs.max())
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
-    # TODO: Ask chat to verify if bin_edges is equivalent to bin_indices from build_distribution
-    # Test using a bar plot where x value is bin centers and y value is counts
+    # TODO: Test using a bar plot where x value is bin centers and y value is counts
     plt.figure(figsize=(8, 5))
     plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
     plt.title("CF Output Distances (Å)")
@@ -50,6 +49,50 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
 
     # Save
     plot_name = "iteration_distances_hist"
+    if graph_name:
+        plot_name = graph_name
+    plt.savefig(f"{plot_name}.png")
+    return plot_name
+
+
+def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+    """
+    Plots a bar chart where each bar corresponds to a histogram bin.
+    X values are bin centers, and Y values are counts of efficiencies in each bin.
+    """
+
+    # Convert dictionary values to numpy array
+    effs = np.array([float(d) for d in efficiencies.values()])
+
+    # Determine bin edges and centers
+    if isinstance(bins, float) or isinstance(bins, int):
+        min_d = effs.min()
+        max_d = effs.max()
+        bin_edges = np.arange(min_d, max_d + bins, bins)
+        bin_centers = bin_edges[:-1] + bins / 2
+    else:
+        # If bins provided as array
+        bin_edges = bins
+        bin_centers = bin_edges[:-1] + (bin_edges[1] - bin_edges[0]) / 2
+
+    # Count how many values fall into each bin
+    counts, _ = np.histogram(effs, bins=bin_edges)
+
+    # --- Plot ---
+    plt.figure(figsize=(8, 5))
+    plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
+            color="mediumseagreen", edgecolor="black")
+    plt.title("CF Output Distances (Å) — Bar Plot")
+    plt.xlabel("Distance (Å)")
+    plt.ylabel("Frequency")
+
+    # Set x-axis ticks
+    xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
+    plt.xticks(xticks)
+    plt.tight_layout()
+
+    # --- Save ---
+    plot_name = "iteration_distances_bar"
     if graph_name:
         plot_name = graph_name
     plt.savefig(f"{plot_name}.png")
@@ -157,4 +200,4 @@ def build_distribution(
         print(len(chosen))
         print(len(selected))
 
-    return selected, bins
+    return selected, bins, bin_centers

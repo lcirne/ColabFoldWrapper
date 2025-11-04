@@ -92,7 +92,7 @@ def initialize_project(jobs):
     key_values.append(("num_s", num_s))
 
     # Variable for max number of msa's
-    m_e_msa = 40
+    m_e_msa = 32
     m_msa = m_e_msa // 2
     key_values.append(("m_e_msa", m_e_msa))
     key_values.append(("m_msa", m_msa))
@@ -274,7 +274,6 @@ def filter_output(run_number, jobs, script_path):
         distances[filename] = e_conversions[i]
         i += 1
 
-    plot_and_save_distances(distances, run_number)
     # Finished implementation:
     # write algorithm to determine which files to extract from distances
     # and add to included_distances to fit a normal distribution
@@ -282,7 +281,9 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances, bins = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    included_distances, bins, bin_centers = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    # Save original distances using bins from build_distribution
+    plot_and_save_distances(distances, run_number, bin_centers)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -304,7 +305,7 @@ def filter_output(run_number, jobs, script_path):
 
         template_number = 0
         for filename, distance in included_distances.items():
-            # TODO: Write logic to check if a filename is duplicated or not
+            # Logic to check if a filename is duplicated or not
             # if so, cp the original file with new name and add to temp_dir
             # if not, just cp original file to temp_dir
             if "_dupe" in filename:
@@ -372,9 +373,9 @@ def update_temp_dir(script_path, dir_name):
                 file.write(line)
 
 
-def plot_and_save_distances(distances, run_number):
+def plot_and_save_distances(distances, run_number, bin_centers):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy(distances)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
