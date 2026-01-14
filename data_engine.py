@@ -37,7 +37,6 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     #print(effs.min(), effs.max())
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
-    # TODO: Test using a bar plot where x value is bin centers and y value is counts
     plt.figure(figsize=(8, 5))
     plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
     plt.title("CF Output Distances (Å)")
@@ -134,6 +133,7 @@ def build_distribution(
     # Extract efficiencies
     efficiencies = np.array(list(file_eff_dict.values()))
     filenames = np.array(list(file_eff_dict.keys()))
+    # TODO: Set N to an arbitrary number to reduce the influence of templates on the output
     N = len(efficiencies)
 
     # Define bin edges across observed range
@@ -178,9 +178,14 @@ def build_distribution(
         if desired_count == 0 or len(available_files) == 0:
             continue
 
+        """
+        TODO: Create a count variable to monitor how many changes need to be made
+        to the outputted distribution to build a gaussian distribution.
+        """
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
+
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division

@@ -257,9 +257,10 @@ def filter_output(run_number, jobs, script_path):
     """
     # Load json and obtain outputdir and temp_dir
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
-        
+
     current_dir = os.getcwd()
-    colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
+    #colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
+    colabfold_output = os.listdir(f"{outputdir}")
 
    # Loop through files and run DistanceFinder.py on each
     distances = {}
