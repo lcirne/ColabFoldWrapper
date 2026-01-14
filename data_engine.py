@@ -39,7 +39,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label="Structures per Distance (Å)")
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
@@ -84,7 +84,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black")
+            color="mediumseagreen", edgecolor="black", label="Structures per Distance (Å)")
     plt.title("CF Output Distances (Å) — Bar Plot")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")

@@ -130,7 +130,7 @@ $inputfile $outputdir
     with open(script_path, 'w') as file:
         print(">>> WRITING SHELL SCRIPT")
         file.write(script_content)
-    append_json("jobs.json", key_values)
+    append_jobs_json("jobs.json", key_values)
     return script_path
 
 
@@ -166,7 +166,7 @@ def clear_directory(dir_path):
             shutil.rmtree(item_path)
 
 
-def append_json(jobs, key_values):
+def append_jobs_json(jobs, key_values):
     """
     Appends job metadata to a JSON file. If the file does not exist,
     it creates a new one.
@@ -188,8 +188,32 @@ def append_json(jobs, key_values):
     job_dict["jobs"].append(new_entry)
 
     with open(jobs, "w") as f:
-        print(">>> APPENDING JSON")
+        print(f">>> APPENDING JSON TO {jobs}")
         json.dump(job_dict, f, indent=4)
+        print("###### COMPLETE ######")
+
+
+def append_mods_json(mods_file, mods_dict):
+    """
+    Append distribution modifications from the distribution building
+    process to the json logs.
+
+    Args:
+        mods_file (str): Path to JSON file.
+        mods_json (dict): Dictionary containing json to append.
+    """
+    try:
+        with open(mods_file, "r") as f:
+            mods_json = json.load(f)
+    except FileNotFoundError as e:
+        print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
+    except json.JSONDecodeError:
+        mods_json = {"mods": []}
+    mods_json["mods"].append(mods_dict)
+
+    with open(mods_file, "w") as f:
+        print(f">>> APPENDING JSON TO {mods_file}")
+        json.dump(mods_json, f, indent=4)
         print("###### COMPLETE ######")
 
 
@@ -225,27 +249,7 @@ def get_from_current_job(jobs_file, items) -> list:
     return 0
 
 
-def run_colabfold(script_path, jobs):
-    """
-    Runs the ColabFold shell script multiple times and filters output
-    based on template distance criteria.
-
-    Args:
-        script_path (str): Path to the shell script.
-        jobs (str): Path to the job metadata JSON file.
-    """
-    delete_directory("./iterations/")
-    for run_number in range(3):
-        """
-        Start with three iterations for testing
-        Once running, continue iterating until an ideal structure is output
-        """
-        os.chmod(script_path, 0o755)
-        subprocess.run([script_path], check=True)
-        filter_output(run_number, jobs, script_path)
-
-
-def filter_output(run_number, jobs, mod_counts, script_path):
+def filter_output(run_number, jobs, script_path):
     """
     Filters PDB output files based on proximity to target distances.
     Updates template directory for next ColabFold iteration accordingly.
@@ -285,7 +289,7 @@ def filter_output(run_number, jobs, mod_counts, script_path):
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
 
     # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers, mod_count)
+    plot_and_save_distances(distances, run_number, bin_centers)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -404,7 +408,7 @@ def main():
     outputdir = get_from_current_job(jobs, ["outputdir"])[0]
     mod_counts = {outputdir: {}}
 
-    for run_number in range(5):
+    for run_number in range(1):
         """
         Start with three iterations for testing
         Once running, continue iterating until an ideal structure is output
@@ -413,12 +417,14 @@ def main():
         subprocess.run([script_path], check=True)
         iteration_mod_count = filter_output(run_number, jobs, script_path)
         mod_counts[outputdir][run_number] = iteration_mod_count
-        append_json(mods, mod_counts)
 
     # Move iterations directory into output directory to save results
-    subprocess.run(["mv", "./mod_counts.json", outputdir])
+    #subprocess.run(["mv", "./mod_counts.json", outputdir])
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
+
+    # Append mod_counts to json logs
+    append_mods_json(mods, mod_counts)
 
 
 if __name__ == '__main__':
