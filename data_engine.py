@@ -23,6 +23,7 @@ def compute_E(distances, R_0=51):
 def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
+    N = len(effs)
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
@@ -42,6 +43,8 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
+    plt.legend(title=f"N: {N}")
+
     xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
@@ -62,6 +65,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
+    N = len(effs)
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):
@@ -84,6 +88,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
     plt.title("CF Output Distances (Å) — Bar Plot")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
+    plt.legend(title=f"N: {N}")
 
     # Set x-axis ticks
     xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
@@ -153,15 +158,6 @@ def build_distribution(
     gauss_probs /= gauss_probs.sum()  # normalize
     target_counts = np.round(gauss_probs * N).astype(int)
 
-    """
-    TODO: Test without code chunk to see if highest bin will be reduced
-    # Adjust for rounding (so sum == N)
-    diff = N - target_counts.sum()
-    if diff != 0:
-        # fix by adjusting the bin with the highest probability
-        target_counts[np.argmax(gauss_probs)] += diff
-    """
-
     # Group files by bin
     bin_to_files = defaultdict(list)
     for fname, eff, bidx in zip(filenames, efficiencies, bin_indices):
@@ -171,6 +167,7 @@ def build_distribution(
     selected = {}
     dupe_counter = defaultdict(int)
 
+    mod_count = 0
     for bidx, desired_count in enumerate(target_counts):
         print(f"desired_count: {desired_count}")
         available_files = bin_to_files.get(bidx, [])
@@ -185,12 +182,14 @@ def build_distribution(
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
+            mod_count += 1
 
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division
             extended = available_files * multiplier
             chosen = random.sample(extended, desired_count)
+            mod_count += 1
 
         # Add chosen pairs with dupe suffixes if needed
 
@@ -205,4 +204,4 @@ def build_distribution(
         print(len(chosen))
         print(len(selected))
 
-    return selected, bins, bin_centers
+    return selected, bins, bin_centers, mod_count

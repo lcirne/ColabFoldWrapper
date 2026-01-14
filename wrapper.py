@@ -245,7 +245,7 @@ def run_colabfold(script_path, jobs):
         filter_output(run_number, jobs, script_path)
 
 
-def filter_output(run_number, jobs, script_path):
+def filter_output(run_number, jobs, mod_counts, script_path):
     """
     Filters PDB output files based on proximity to target distances.
     Updates template directory for next ColabFold iteration accordingly.
@@ -282,9 +282,10 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances, bins, bin_centers = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+
     # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers)
+    plot_and_save_distances(distances, run_number, bin_centers, mod_count)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -322,13 +323,13 @@ def filter_output(run_number, jobs, script_path):
             subprocess.run(["mv", f"iterations/{temp_dir}/{filename}", f"iterations/{temp_dir}/{template_number_str}.pdb"])
             print(f"###### {filename} ADDED TO {temp_dir} ({distance} A) ######")
             template_number = template_number + 1
-    
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
         if run_number < 2:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
+    return mod_count
 
 
 def run_distance_finder(structure_file, p1, p2):
@@ -395,10 +396,13 @@ def main():
     print("*" * 31)
 
     jobs = "jobs.json"
-    
+    mods = "mod_counts.json"
+
     script_path = initialize_project(jobs)
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
+    outputdir = get_from_current_job(jobs, ["outputdir"])[0]
+    mod_counts = {outputdir: {}}
 
     for run_number in range(5):
         """
@@ -407,11 +411,12 @@ def main():
         """
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        filter_output(run_number, jobs, script_path)
+        iteration_mod_count = filter_output(run_number, jobs, script_path)
+        mod_counts[outputdir][run_number] = iteration_mod_count
+        append_json(mods, mod_counts)
 
     # Move iterations directory into output directory to save results
-        
-    outputdir = get_from_current_job(jobs, ["outputdir"])[0]
+    subprocess.run(["mv", "./mod_counts.json", outputdir])
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
 
