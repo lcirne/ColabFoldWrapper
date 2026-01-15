@@ -91,6 +91,18 @@ def initialize_project(jobs):
                 print("###### Invalid input #######")
     key_values.append(("num_s", num_s))
 
+    # Obtain value for n
+    while True:
+        n = input("Desired value for n (integer) (min 10): ")
+        try:
+            if 9 < int(num_s):
+                break
+            else:
+                print("###### Invalid input #######")
+        except ValueError:
+                print("###### Invalid input #######")
+    key_values.append(("n", n))
+
     # Variable for max number of msa's
     m_e_msa = 32
     m_msa = m_e_msa // 2
@@ -237,19 +249,21 @@ def get_from_current_job(jobs_file, items) -> list:
                         requested_items.append(current_job_info[4])
                     case "num_s":
                         requested_items.append(current_job_info[5])
-                    case "m_e_msa":
+                    case "n":
                         requested_items.append(current_job_info[6])
-                    case "m_msa":
+                    case "m_e_msa":
                         requested_items.append(current_job_info[7])
-                    case "outputdir":
+                    case "m_msa":
                         requested_items.append(current_job_info[8])
+                    case "outputdir":
+                        requested_items.append(current_job_info[9])
         return requested_items
     except FileNotFoundError:
         print("###### JSON FILE NOT FOUND ######")
     return 0
 
 
-def filter_output(run_number, jobs, script_path):
+def filter_output(run_number, jobs, script_path, n):
     """
     Filters PDB output files based on proximity to target distances.
     Updates template directory for next ColabFold iteration accordingly.
@@ -286,7 +300,7 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
 
     # Save original distances using bins from build_distribution
     plot_and_save_distances(distances, run_number, bin_centers)
@@ -405,21 +419,20 @@ def main():
     script_path = initialize_project(jobs)
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
-    outputdir = get_from_current_job(jobs, ["outputdir"])[0]
+    n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
     mod_counts = {outputdir: {}}
 
-    for run_number in range(1):
+    for run_number in range(5):
         """
         Start with three iterations for testing
         Once running, continue iterating until an ideal structure is output
         """
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        iteration_mod_count = filter_output(run_number, jobs, script_path)
+        iteration_mod_count = filter_output(run_number, jobs, script_path, n)
         mod_counts[outputdir][run_number] = iteration_mod_count
 
     # Move iterations directory into output directory to save results
-    #subprocess.run(["mv", "./mod_counts.json", outputdir])
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
 
