@@ -108,7 +108,8 @@ def build_distribution(
     mean: float,
     std: float,
     bin_width: float = 0.05,
-    seed: int = None
+    seed: int = None,
+    n: int = None
 ) -> dict:
 
     """
@@ -138,8 +139,9 @@ def build_distribution(
     # Extract efficiencies
     efficiencies = np.array(list(file_eff_dict.values()))
     filenames = np.array(list(file_eff_dict.keys()))
-    # TODO: Set N to an arbitrary number to reduce the influence of templates on the output
-    N = len(efficiencies)
+
+    # N represents the number of structures that will be returned
+    N = n if n else len(efficiencies)
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
