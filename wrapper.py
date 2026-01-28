@@ -95,7 +95,7 @@ def initialize_project(jobs):
     while True:
         n = input("Desired value for n (integer) (min 10): ")
         try:
-            if 9 < int(num_s):
+            if 9 < int(n):
                 break
             else:
                 print("###### Invalid input #######")
@@ -420,6 +420,7 @@ def main():
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
     n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    n = int(n)
     mod_counts = {outputdir: {}}
 
     for run_number in range(5):
