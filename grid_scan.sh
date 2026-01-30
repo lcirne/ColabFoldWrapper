@@ -18,6 +18,6 @@ for n in "${n_values[@]}"; do
     echo "$n" >>scan_inputs.txt
     echo "$msa" >>scan_inputs.txt
     python3 wrapper.py <scan_inputs.txt
-    >scan_inputs # Truncate all contents of scan_inputs.txt
+    >scan_inputs.txt # Truncate all contents of scan_inputs.txt
   done
 done
