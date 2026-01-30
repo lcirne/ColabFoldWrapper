@@ -103,10 +103,19 @@ def initialize_project(jobs):
                 print("###### Invalid input #######")
     key_values.append(("n", n))
 
-    # Variable for max number of msa's
-    m_e_msa = 32
-    m_msa = m_e_msa // 2
+    # Obtain value for m_e_msa
+    while True:
+        m_e_msa = input("Desired value for max number of msa's (integer) (min 1): ")
+        try:
+            if 1 < int(m_e_msa):
+                break
+            else:
+                print("###### Invalid input #######")
+        except ValueError:
+                print("###### Invalid input #######")
     key_values.append(("m_e_msa", m_e_msa))
+
+    m_msa = m_e_msa // 2
     key_values.append(("m_msa", m_msa))
 
     # Variable for full output directory by user, job id, and max msa's
