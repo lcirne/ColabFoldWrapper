@@ -84,6 +84,7 @@ def initialize_project(jobs):
         num_s = input("Desired number of seeds (integer) (min 1): ")
         try:
             if 0 < int(num_s):
+                num_s = int(num_s)
                 break
             else:
                 print("###### Invalid input #######")
@@ -96,6 +97,7 @@ def initialize_project(jobs):
         n = input("Desired value for n (integer) (min 10): ")
         try:
             if 9 < int(n):
+                n = int(n)
                 break
             else:
                 print("###### Invalid input #######")
@@ -108,6 +110,7 @@ def initialize_project(jobs):
         m_e_msa = input("Desired value for max number of msa's (integer) (min 1): ")
         try:
             if 1 < int(m_e_msa):
+                m_e_msa = int(m_e_msa)
                 break
             else:
                 print("###### Invalid input #######")
