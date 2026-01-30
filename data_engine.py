@@ -177,10 +177,6 @@ def build_distribution(
         if desired_count == 0 or len(available_files) == 0:
             continue
 
-        """
-        TODO: Create a count variable to monitor how many changes need to be made
-        to the outputted distribution to build a gaussian distribution.
-        """
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
