@@ -20,10 +20,11 @@ def compute_E(distances, R_0=51):
     return distances
 
 
-def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
-    N = len(effs)
+    if not N:
+        N = len(effs)
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
@@ -57,7 +58,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     return plot_name
 
 
-def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     """
     Plots a bar chart where each bar corresponds to a histogram bin.
     X values are bin centers, and Y values are counts of efficiencies in each bin.
@@ -65,7 +66,8 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
-    N = len(effs)
+    if not N:
+        N = len(effs)
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):

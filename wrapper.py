@@ -315,7 +315,7 @@ def filter_output(run_number, jobs, script_path, n):
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
 
     # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers)
+    plot_and_save_distances(distances, run_number, bin_centers, n)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -407,7 +407,7 @@ def update_temp_dir(script_path, dir_name):
 
 def plot_and_save_distances(distances, run_number, bin_centers):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, n=n)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
