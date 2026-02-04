@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import json
 import getpass
+from pathlib import Path
 import numpy as np
 import data_engine as engine
 
@@ -431,6 +432,7 @@ def main():
     script_path = initialize_project(jobs)
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
+    # n represents the number of templates that will be passed on in each iteration
     n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
     n = int(n)
     mod_counts = {outputdir: {}}
