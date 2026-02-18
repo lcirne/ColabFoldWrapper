@@ -6,7 +6,7 @@ num_recycles=0
 num_seeds=15
 
 # Grid search independant vars
-n_values=("30" "50" "70")
+N_values=("30" "50" "70")
 max_msa_values=("16" "24" "32")
 
 for n in "${n_values[@]}"; do
