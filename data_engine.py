@@ -20,9 +20,11 @@ def compute_E(distances, R_0=51):
     return distances
 
 
-def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
+    if not N:
+        N = len(effs)
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
@@ -37,12 +39,13 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     #print(effs.min(), effs.max())
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
-    # TODO: Test using a bar plot where x value is bin centers and y value is counts
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label="Structures per Distance (Å)")
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
+    plt.legend(title=f"N: {N}")
+
     xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
@@ -55,7 +58,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     return plot_name
 
 
-def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     """
     Plots a bar chart where each bar corresponds to a histogram bin.
     X values are bin centers, and Y values are counts of efficiencies in each bin.
@@ -63,6 +66,8 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
+    if not N:
+        N = len(effs)
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):
@@ -81,10 +86,11 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black")
+            color="mediumseagreen", edgecolor="black", label="Structures per Distance (Å)")
     plt.title("CF Output Distances (Å) — Bar Plot")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
+    plt.legend(title=f"N: {N}")
 
     # Set x-axis ticks
     xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
@@ -104,7 +110,8 @@ def build_distribution(
     mean: float,
     std: float,
     bin_width: float = 0.05,
-    seed: int = None
+    seed: int = None,
+    n: int = None
 ) -> dict:
 
     """
@@ -134,7 +141,9 @@ def build_distribution(
     # Extract efficiencies
     efficiencies = np.array(list(file_eff_dict.values()))
     filenames = np.array(list(file_eff_dict.keys()))
-    N = len(efficiencies)
+
+    # N represents the number of structures that will be returned
+    N = n if n else len(efficiencies)
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
@@ -153,15 +162,6 @@ def build_distribution(
     gauss_probs /= gauss_probs.sum()  # normalize
     target_counts = np.round(gauss_probs * N).astype(int)
 
-    """
-    TODO: Test without code chunk to see if highest bin will be reduced
-    # Adjust for rounding (so sum == N)
-    diff = N - target_counts.sum()
-    if diff != 0:
-        # fix by adjusting the bin with the highest probability
-        target_counts[np.argmax(gauss_probs)] += diff
-    """
-
     # Group files by bin
     bin_to_files = defaultdict(list)
     for fname, eff, bidx in zip(filenames, efficiencies, bin_indices):
@@ -171,6 +171,7 @@ def build_distribution(
     selected = {}
     dupe_counter = defaultdict(int)
 
+    mod_count = 0
     for bidx, desired_count in enumerate(target_counts):
         print(f"desired_count: {desired_count}")
         available_files = bin_to_files.get(bidx, [])
@@ -181,11 +182,14 @@ def build_distribution(
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
+            mod_count += 1
+
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division
             extended = available_files * multiplier
             chosen = random.sample(extended, desired_count)
+            mod_count += 1
 
         # Add chosen pairs with dupe suffixes if needed
 
@@ -200,4 +204,4 @@ def build_distribution(
         print(len(chosen))
         print(len(selected))
 
-    return selected, bins, bin_centers
+    return selected, bins, bin_centers, mod_count

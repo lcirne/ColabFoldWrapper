@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import json
 import getpass
+from pathlib import Path
 import numpy as np
 import data_engine as engine
 
@@ -84,6 +85,7 @@ def initialize_project(jobs):
         num_s = input("Desired number of seeds (integer) (min 1): ")
         try:
             if 0 < int(num_s):
+                num_s = int(num_s)
                 break
             else:
                 print("###### Invalid input #######")
@@ -91,13 +93,37 @@ def initialize_project(jobs):
                 print("###### Invalid input #######")
     key_values.append(("num_s", num_s))
 
-    # Variable for max number of msa's
-    m_e_msa = 32
-    m_msa = m_e_msa // 2
+    # Obtain value for n
+    while True:
+        n = input("Desired value for n (integer) (min 10): ")
+        try:
+            if 9 < int(n):
+                n = int(n)
+                break
+            else:
+                print("###### Invalid input #######")
+        except ValueError:
+                print("###### Invalid input #######")
+    key_values.append(("n", n))
+
+    # Obtain value for m_e_msa
+    while True:
+        m_e_msa = input("Desired value for max number of msa's (integer) (min 1): ")
+        try:
+            if 1 < int(m_e_msa):
+                m_e_msa = int(m_e_msa)
+                break
+            else:
+                print("###### Invalid input #######")
+        except ValueError:
+                print("###### Invalid input #######")
     key_values.append(("m_e_msa", m_e_msa))
+
+    m_msa = m_e_msa // 2
     key_values.append(("m_msa", m_msa))
 
     # Variable for full output directory by user, job id, and max msa's
+    # TODO: Change this to use abspath
     outputdir = f"{username}{current_JID}mm{m_msa}"
     key_values.append(("outputdir", outputdir))
 
@@ -130,7 +156,7 @@ $inputfile $outputdir
     with open(script_path, 'w') as file:
         print(">>> WRITING SHELL SCRIPT")
         file.write(script_content)
-    append_json("jobs.json", key_values)
+    append_jobs_json("jobs.json", key_values)
     return script_path
 
 
@@ -166,7 +192,7 @@ def clear_directory(dir_path):
             shutil.rmtree(item_path)
 
 
-def append_json(jobs, key_values):
+def append_jobs_json(jobs, key_values):
     """
     Appends job metadata to a JSON file. If the file does not exist,
     it creates a new one.
@@ -188,8 +214,32 @@ def append_json(jobs, key_values):
     job_dict["jobs"].append(new_entry)
 
     with open(jobs, "w") as f:
-        print(">>> APPENDING JSON")
+        print(f">>> APPENDING JSON TO {jobs}")
         json.dump(job_dict, f, indent=4)
+        print("###### COMPLETE ######")
+
+
+def append_mods_json(mods_file, mods_dict):
+    """
+    Append distribution modifications from the distribution building
+    process to the json logs.
+
+    Args:
+        mods_file (str): Path to JSON file.
+        mods_json (dict): Dictionary containing json to append.
+    """
+    try:
+        with open(mods_file, "r") as f:
+            mods_json = json.load(f)
+    except FileNotFoundError as e:
+        print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
+    except json.JSONDecodeError:
+        mods_json = {"mods": []}
+    mods_json["mods"].append(mods_dict)
+
+    with open(mods_file, "w") as f:
+        print(f">>> APPENDING JSON TO {mods_file}")
+        json.dump(mods_json, f, indent=4)
         print("###### COMPLETE ######")
 
 
@@ -213,39 +263,21 @@ def get_from_current_job(jobs_file, items) -> list:
                         requested_items.append(current_job_info[4])
                     case "num_s":
                         requested_items.append(current_job_info[5])
-                    case "m_e_msa":
+                    case "n":
                         requested_items.append(current_job_info[6])
-                    case "m_msa":
+                    case "m_e_msa":
                         requested_items.append(current_job_info[7])
-                    case "outputdir":
+                    case "m_msa":
                         requested_items.append(current_job_info[8])
+                    case "outputdir":
+                        requested_items.append(current_job_info[9])
         return requested_items
     except FileNotFoundError:
         print("###### JSON FILE NOT FOUND ######")
     return 0
 
 
-def run_colabfold(script_path, jobs):
-    """
-    Runs the ColabFold shell script multiple times and filters output
-    based on template distance criteria.
-
-    Args:
-        script_path (str): Path to the shell script.
-        jobs (str): Path to the job metadata JSON file.
-    """
-    delete_directory("./iterations/")
-    for run_number in range(3):
-        """
-        Start with three iterations for testing
-        Once running, continue iterating until an ideal structure is output
-        """
-        os.chmod(script_path, 0o755)
-        subprocess.run([script_path], check=True)
-        filter_output(run_number, jobs, script_path)
-
-
-def filter_output(run_number, jobs, script_path):
+def filter_output(run_number, jobs, script_path, n):
     """
     Filters PDB output files based on proximity to target distances.
     Updates template directory for next ColabFold iteration accordingly.
@@ -257,9 +289,10 @@ def filter_output(run_number, jobs, script_path):
     """
     # Load json and obtain outputdir and temp_dir
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
-        
+
     current_dir = os.getcwd()
-    colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
+    #colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
+    colabfold_output = os.listdir(f"{outputdir}")
 
    # Loop through files and run DistanceFinder.py on each
     distances = {}
@@ -281,9 +314,10 @@ def filter_output(run_number, jobs, script_path):
     # duplicate templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
-    included_distances, bins, bin_centers = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma)
+    included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
+
     # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers)
+    plot_and_save_distances(distances, run_number, bin_centers, n)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -321,13 +355,13 @@ def filter_output(run_number, jobs, script_path):
             subprocess.run(["mv", f"iterations/{temp_dir}/{filename}", f"iterations/{temp_dir}/{template_number_str}.pdb"])
             print(f"###### {filename} ADDED TO {temp_dir} ({distance} A) ######")
             template_number = template_number + 1
-    
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
         if run_number < 2:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
+    return mod_count
 
 
 def run_distance_finder(structure_file, p1, p2):
@@ -375,7 +409,7 @@ def update_temp_dir(script_path, dir_name):
 
 def plot_and_save_distances(distances, run_number, bin_centers):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, n=n)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
@@ -393,11 +427,19 @@ def main():
     print()
     print("*" * 31)
 
-    jobs = "jobs.json"
-    
+    jobs = os.path.abspath("jobs.json")
+    mods = os.path.abspath("mod_counts.json")
+
     script_path = initialize_project(jobs)
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
+    # n represents the number of templates that will be passed on in each iteration
+    n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    n = int(n)
+    mod_counts = {outputdir: {}}
+    # Create output directory container and cd into it
+    subprocess.run(["mkdir", "-p", f"{outputdir}-container"])
+    subprocess.run(["cd", f"{outputdir}-container"])
 
     for run_number in range(5):
         """
@@ -406,13 +448,15 @@ def main():
         """
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        filter_output(run_number, jobs, script_path)
+        iteration_mod_count = filter_output(run_number, jobs, script_path, n)
+        mod_counts[outputdir][run_number] = iteration_mod_count
 
     # Move iterations directory into output directory to save results
-        
-    outputdir = get_from_current_job(jobs, ["outputdir"])[0]
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
+
+    # Append mod_counts to json logs
+    append_mods_json(mods, mod_counts)
 
 
 if __name__ == '__main__':
