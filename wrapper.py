@@ -123,7 +123,9 @@ def initialize_project(jobs):
     key_values.append(("m_msa", m_msa))
 
     # Variable for full output directory by user, job id, and max msa's
-    outputdir = os.path.abspath(f"{username}{current_JID}mm{m_msa}")
+    dir_name = f"{username}{current_JID}mm{m_msa}"
+    container_name = f"{username}{current_JID}mm{m_msa}-container"
+    outputdir = os.path.abspath(f"{container_name}/{dir_name}")
     key_values.append(("outputdir", outputdir))
 
     # Create shell script to run colabfold_batch
