@@ -406,9 +406,9 @@ def update_temp_dir(script_path, dir_name):
                 file.write(line)
 
 
-def plot_and_save_distances(distances, run_number, bin_centers):
+def plot_and_save_distances(distances, run_number, bin_centers, n):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, n=n)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, N=n)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
