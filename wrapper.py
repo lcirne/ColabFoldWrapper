@@ -123,8 +123,7 @@ def initialize_project(jobs):
     key_values.append(("m_msa", m_msa))
 
     # Variable for full output directory by user, job id, and max msa's
-    # TODO: Change this to use abspath
-    outputdir = f"{username}{current_JID}mm{m_msa}"
+    outputdir = os.path.abspath(f"{username}{current_JID}mm{m_msa}")
     key_values.append(("outputdir", outputdir))
 
     # Create shell script to run colabfold_batch
@@ -438,8 +437,8 @@ def main():
     n = int(n)
     mod_counts = {outputdir: {}}
     # Create output directory container and cd into it
-    subprocess.run(["mkdir", "-p", f"{outputdir}-container"])
-    subprocess.run(["cd", f"{outputdir}-container"])
+    #subprocess.run(["mkdir", "-p", f"{outputdir}-container"])
+    #subprocess.run(["cd", f"{outputdir}-container"])
 
     for run_number in range(5):
         """
