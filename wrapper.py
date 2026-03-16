@@ -406,9 +406,9 @@ def update_temp_dir(script_path, dir_name):
                 file.write(line)
 
 
-def plot_and_save_distances(distances, run_number, bin_centers):
+def plot_and_save_distances(distances, run_number, bin_centers, n):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, n=n)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, N=n)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
@@ -434,11 +434,10 @@ def main():
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
     # n represents the number of templates that will be passed on in each iteration
     n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    outputdir_container = f"{outputdir}-container"
     n = int(n)
     mod_counts = {outputdir: {}}
     # Create output directory container and cd into it
-    #subprocess.run(["mkdir", "-p", f"{outputdir}-container"])
-    #subprocess.run(["cd", f"{outputdir}-container"])
 
     for run_number in range(5):
         """
@@ -453,6 +452,7 @@ def main():
     # Move iterations directory into output directory to save results
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
+    subprocess.run(["rm", "-rf", outputdir_container])
 
     # Append mod_counts to json logs
     append_mods_json(mods, mod_counts)
