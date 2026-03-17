@@ -3,7 +3,7 @@
 input_file="UvrD.fasta"
 template_dir="UvrD_PDB"
 num_recycles=0
-num_seeds=1
+num_seeds=15
 
 # Grid search independant vars
 n_values=("30" "50" "70")
