@@ -23,8 +23,9 @@ def compute_E(distances, R_0=51):
 def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
+    total_strucs = len(effs)
     if not N:
-        N = len(effs)
+        N = total_strucs
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
@@ -40,7 +41,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label="Structures per Distance (Å)")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label=f"Structures per Distance (Å)\ntotal structures: {total_strucs}")
     plt.title("CF Output Distances (Å)")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
@@ -66,8 +67,9 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
+    total_strucs = len(effs)
     if not N:
-        N = len(effs)
+        N = total_strucs
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):
@@ -86,7 +88,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black", label="Structures per Distance (Å)")
+            color="mediumseagreen", edgecolor="black", label=f"Structures per Distance (Å)\nTotal Structures: {total_strucs}")
     plt.title("CF Output Distances (Å) — Bar Plot")
     plt.xlabel("Distance (Å)")
     plt.ylabel("Frequency")
