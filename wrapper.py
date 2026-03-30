@@ -359,7 +359,7 @@ def filter_output(run_number, jobs, script_path, n):
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
-        if run_number < 2:
+        if run_number < 5:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
     return mod_count
