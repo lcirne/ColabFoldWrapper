@@ -149,8 +149,9 @@ def build_distribution(
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
-    print(f"min_vale: {min_val} max_val: {max_val}")
-    bins = np.arange(min_val, max_val + bin_width, bin_width)
+    print(f"min_val: {min_val} max_val: {max_val}")
+    #bins = np.arange(min_val, max_val + bin_width, bin_width)
+    bins = np.arange(0, 1, bin_width)
 
     # Bin assignments for each efficiency
     bin_indices = np.digitize(efficiencies, bins) - 1
