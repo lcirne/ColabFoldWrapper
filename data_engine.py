@@ -41,8 +41,8 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label=f"Structures per Distance (Å)\ntotal structures: {total_strucs}")
-    plt.title("CF Output Distances (Å)")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label=f"Structures per Efficiency\ntotal structures: {total_strucs}")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
     plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
@@ -89,7 +89,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
             color="mediumseagreen", edgecolor="black", label=f"Structures per Distance (Å)\nTotal Structures: {total_strucs}")
-    plt.title("CF Output Distances (Å) — Bar Plot")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
     plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
