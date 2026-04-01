@@ -229,15 +229,20 @@ def append_mods_json(mods_file, mods_dict):
         mods_file (str): Path to JSON file.
         mods_json (dict): Dictionary containing json to append.
     """
-    try:
-        with open(mods_file, "r") as f:
-            mods_json = json.load(f)
-    except FileNotFoundError as e:
-        print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
-    except json.JSONDecodeError:
-        mods_json = {"mods": []}
-    mods_json["mods"].append(mods_dict)
+    mods_json = None
+    while not mods_json:
+        try:
+            with open(mods_file, "r") as f:
+                mods_json = json.load(f)
+        except FileNotFoundError as e:
+            print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
+            subprocess.run(["touch", mods_file])
+            with open(mods_file, "r") as f:
+                mods_json = json.load(f)
+        except json.JSONDecodeError:
+            mods_json = {"mods": []}
 
+    mods_json["mods"].append(mods_dict)
     with open(mods_file, "w") as f:
         print(f">>> APPENDING JSON TO {mods_file}")
         json.dump(mods_json, f, indent=4)
