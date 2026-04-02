@@ -237,8 +237,6 @@ def append_mods_json(mods_file, mods_dict):
         except FileNotFoundError as e:
             print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
             subprocess.run(["touch", mods_file])
-            with open(mods_file, "r") as f:
-                mods_json = json.load(f)
         except json.JSONDecodeError:
             mods_json = {"mods": []}
 

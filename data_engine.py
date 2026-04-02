@@ -149,18 +149,17 @@ def build_distribution(
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
-    print(f"min_val: {min_val} max_val: {max_val}")
+    #print(f"min_val: {min_val} max_val: {max_val}")
     #bins = np.arange(min_val, max_val + bin_width, bin_width)
     bins = np.arange(0, 1, bin_width)
 
     # Bin assignments for each efficiency
     bin_indices = np.digitize(efficiencies, bins) - 1
-    print(f"bin_indices: {bin_indices}")
 
     # Compute bin centers
     bin_centers = bins[:-1] + bin_width / 2
 
-    # --- Step 3: Compute Gaussian-based target counts ---
+    # --- Compute Gaussian-based target counts ---
     gauss_probs = np.exp(-0.5 * ((bin_centers - mean) / std) ** 2)
     gauss_probs /= gauss_probs.sum()  # normalize
     target_counts = np.round(gauss_probs * N).astype(int)
