@@ -316,7 +316,7 @@ def filter_output(run_number, jobs, script_path, n):
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
 
     # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers, n)
+    plot_and_save_distances(distances, run_number, bin_centers)
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
