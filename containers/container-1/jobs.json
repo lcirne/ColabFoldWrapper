@@ -1,0 +1,16 @@
+{
+    "jobs": [
+        {
+            "user": "lcirne",
+            "JID": 0,
+            "input_file": "UvrD.fasta",
+            "temp_dir": "UvrD_PDB",
+            "num_recycles": "0",
+            "num_s": 25,
+            "n": 70,
+            "m_e_msa": 32,
+            "m_msa": 16,
+            "outputdir": "/home/lcirne/scratch/container-1/lcirne0mm16-container/lcirne0mm16"
+        }
+    ]
+}

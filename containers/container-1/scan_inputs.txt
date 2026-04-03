@@ -1,0 +1,6 @@
+UvrD.fasta
+UvrD_PDB
+0
+25
+70
+32
