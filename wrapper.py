@@ -14,6 +14,8 @@ from pathlib import Path
 import numpy as np
 import data_engine as engine
 
+num_iterations = 0
+
 def initialize_project(jobs):
     """
     Initializes a ColabFold project by gathering user input,
@@ -92,6 +94,18 @@ def initialize_project(jobs):
         except ValueError:
                 print("###### Invalid input #######")
     key_values.append(("num_s", num_s))
+
+    # Obtain num iterations
+    while True:
+        iters = input("Desired number of iterations for the wrapper (integer) (min 1): ")
+        try:
+            if int(iters) > 1:
+                set_num_iterations(iters)
+                break
+            else:
+                print("###### Invalid Input ######")
+        except ValueError:
+                print("###### Invalid Input ######")
 
     # Obtain value for n
     while True:
@@ -362,7 +376,7 @@ def filter_output(run_number, jobs, script_path, n):
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
-        if run_number < 5:
+        if run_number < num_iterations:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
     return mod_count
@@ -417,6 +431,9 @@ def plot_and_save_distances(distances, run_number, bin_centers, n):
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
+def set_num_iterations(iters):
+    global num_iterations
+    num_iterations = iters
 
 def main():
     """
@@ -446,7 +463,7 @@ def main():
     subprocess.run(["mkdir", "-p", outputdir_container])
     subprocess.run(["cd", outputdir_container])
 
-    for run_number in range(5):
+    for run_number in range(num_iterations):
         """
         Start with three iterations for testing
         Once running, continue iterating until an ideal structure is output
