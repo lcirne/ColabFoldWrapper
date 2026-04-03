@@ -100,7 +100,7 @@ def initialize_project(jobs):
         iters = input("Desired number of iterations for the wrapper (integer) (min 1): ")
         try:
             if int(iters) > 1:
-                set_num_iterations(iters)
+                set_num_iterations(int(iters))
                 break
             else:
                 print("###### Invalid Input ######")
