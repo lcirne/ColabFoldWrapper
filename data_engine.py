@@ -23,8 +23,9 @@ def compute_E(distances, R_0=51):
 def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
+    total_strucs = len(effs)
     if not N:
-        N = len(effs)
+        N = total_strucs
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
@@ -40,9 +41,9 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None, N=None
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label="Structures per Distance (Å)")
-    plt.title("CF Output Distances (Å)")
-    plt.xlabel("Distance (Å)")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label=f"Structures per Efficiency\ntotal structures: {total_strucs}")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
+    plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
@@ -66,8 +67,9 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
+    total_strucs = len(effs)
     if not N:
-        N = len(effs)
+        N = total_strucs
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):
@@ -86,9 +88,9 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None, N=
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black", label="Structures per Distance (Å)")
-    plt.title("CF Output Distances (Å) — Bar Plot")
-    plt.xlabel("Distance (Å)")
+            color="mediumseagreen", edgecolor="black", label=f"Structures per Distance (Å)\nTotal Structures: {total_strucs}")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
+    plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
@@ -147,17 +149,17 @@ def build_distribution(
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
-    print(f"min_vale: {min_val} max_val: {max_val}")
-    bins = np.arange(min_val, max_val + bin_width, bin_width)
+    #print(f"min_val: {min_val} max_val: {max_val}")
+    #bins = np.arange(min_val, max_val + bin_width, bin_width)
+    bins = np.arange(0, 1, bin_width)
 
     # Bin assignments for each efficiency
     bin_indices = np.digitize(efficiencies, bins) - 1
-    print(f"bin_indices: {bin_indices}")
 
     # Compute bin centers
     bin_centers = bins[:-1] + bin_width / 2
 
-    # --- Step 3: Compute Gaussian-based target counts ---
+    # --- Compute Gaussian-based target counts ---
     gauss_probs = np.exp(-0.5 * ((bin_centers - mean) / std) ** 2)
     gauss_probs /= gauss_probs.sum()  # normalize
     target_counts = np.round(gauss_probs * N).astype(int)

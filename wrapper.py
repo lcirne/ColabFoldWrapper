@@ -123,7 +123,9 @@ def initialize_project(jobs):
     key_values.append(("m_msa", m_msa))
 
     # Variable for full output directory by user, job id, and max msa's
-    outputdir = os.path.abspath(f"{username}{current_JID}mm{m_msa}")
+    dir_name = f"{username}{current_JID}mm{m_msa}"
+    container_name = f"{username}{current_JID}mm{m_msa}-container"
+    outputdir = os.path.abspath(f"{container_name}/{dir_name}")
     key_values.append(("outputdir", outputdir))
 
     # Create shell script to run colabfold_batch
@@ -227,15 +229,18 @@ def append_mods_json(mods_file, mods_dict):
         mods_file (str): Path to JSON file.
         mods_json (dict): Dictionary containing json to append.
     """
-    try:
-        with open(mods_file, "r") as f:
-            mods_json = json.load(f)
-    except FileNotFoundError as e:
-        print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
-    except json.JSONDecodeError:
-        mods_json = {"mods": []}
-    mods_json["mods"].append(mods_dict)
+    mods_json = None
+    while not mods_json:
+        try:
+            with open(mods_file, "r") as f:
+                mods_json = json.load(f)
+        except FileNotFoundError as e:
+            print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
+            subprocess.run(["touch", mods_file])
+        except json.JSONDecodeError:
+            mods_json = {"mods": []}
 
+    mods_json["mods"].append(mods_dict)
     with open(mods_file, "w") as f:
         print(f">>> APPENDING JSON TO {mods_file}")
         json.dump(mods_json, f, indent=4)
@@ -357,7 +362,7 @@ def filter_output(run_number, jobs, script_path, n):
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
         # Clear ouput directory
-        if run_number < 2:
+        if run_number < 5:
             clear_directory(outputdir)
         #subprocess.run(["rm", "-r", outputdir])
     return mod_count
@@ -406,9 +411,9 @@ def update_temp_dir(script_path, dir_name):
                 file.write(line)
 
 
-def plot_and_save_distances(distances, run_number, bin_centers):
+def plot_and_save_distances(distances, run_number, bin_centers, n):
     os.makedirs("distance_distributions", exist_ok=True)
-    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, n=n)}"
+    plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_centers, N=n)}"
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
@@ -434,11 +439,12 @@ def main():
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
     # n represents the number of templates that will be passed on in each iteration
     n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    outputdir_container = f"{outputdir}-container"
     n = int(n)
     mod_counts = {outputdir: {}}
     # Create output directory container and cd into it
-    subprocess.run(["mkdir", "-p", f"{outputdir}-container"])
-    subprocess.run(["cd", f"{outputdir}-container"])
+    subprocess.run(["mkdir", "-p", outputdir_container])
+    subprocess.run(["cd", outputdir_container])
 
     for run_number in range(5):
         """
@@ -453,6 +459,7 @@ def main():
     # Move iterations directory into output directory to save results
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", "./distance_distributions/", outputdir])
+    subprocess.run(["rm", "-rf", outputdir_container])
 
     # Append mod_counts to json logs
     append_mods_json(mods, mod_counts)
