@@ -15,7 +15,7 @@ import numpy as np
 import data_engine as engine
 
 # ---- Global Variables ----
-MOD_COUNTS_FILEPATH = "~/scratch/mod_counts.json"
+MOD_COUNTS_FILEPATH = "/home/lcirne/scratch/mod_counts.json"
 
 num_iterations = 0
 
