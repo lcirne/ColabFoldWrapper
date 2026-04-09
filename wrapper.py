@@ -15,6 +15,8 @@ import numpy as np
 import data_engine as engine
 
 # ---- Global Variables ----
+MOD_COUNTS_FILEPATH = "~/scratch/mod_counts.json"
+
 num_iterations = 0
 
 # Setters for global vars
@@ -463,7 +465,8 @@ def main():
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
     subprocess.run(["cd", outputdir_container])
-    mods = os.path.abspath("mod_counts.json")
+    #mods = os.path.abspath("mod_counts.json")
+    mods = MOD_COUNTS_FILEPATH
 
     for run_number in range(num_iterations):
         """
