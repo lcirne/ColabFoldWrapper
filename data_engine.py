@@ -111,7 +111,7 @@ def build_distribution(
     file_eff_dict: dict,
     mean: float,
     std: float,
-    bin_width: float = 0.05,
+    bin_width: float = 0.025,
     seed: int = None,
     n: int = None
 ) -> dict:
@@ -184,14 +184,13 @@ def build_distribution(
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
-            mod_count += 1
-
+            mod_count += len(available_files) - desired_count
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division
             extended = available_files * multiplier
             chosen = random.sample(extended, desired_count)
-            mod_count += 1
+            mod_count += desired_count - len(available_files)
 
         # Add chosen pairs with dupe suffixes if needed
 
