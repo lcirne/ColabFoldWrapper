@@ -174,6 +174,7 @@ colabfold_batch --pair-mode unpaired_paired --templates \\
 --use-dropout \\
 --num-seeds $num_s \\
 --num-recycle $num_c \\
+--num_models=2 \\
 $inputfile $outputdir
     """
     # Create shell script to execute ColabFold
