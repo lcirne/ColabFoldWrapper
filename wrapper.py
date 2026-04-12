@@ -14,7 +14,16 @@ from pathlib import Path
 import numpy as np
 import data_engine as engine
 
+# ---- Global Variables ----
+MOD_COUNTS_FILEPATH = "/home/lcirne/scratch/mod_counts.json"
+
 num_iterations = 0
+
+# Setters for global vars
+def set_num_iterations(iters):
+    global num_iterations
+    num_iterations = iters
+# --------------------------
 
 def initialize_project(jobs):
     """
@@ -430,9 +439,6 @@ def plot_and_save_distances(distances, run_number, bin_centers, n):
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
-def set_num_iterations(iters):
-    global num_iterations
-    num_iterations = iters
 
 def main():
     """
@@ -448,8 +454,6 @@ def main():
     print("*" * 31)
 
     jobs = os.path.abspath("jobs.json")
-    mods = os.path.abspath("mod_counts.json")
-
     script_path = initialize_project(jobs)
 
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
@@ -461,6 +465,8 @@ def main():
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
     subprocess.run(["cd", outputdir_container])
+    #mods = os.path.abspath("mod_counts.json")
+    mods = MOD_COUNTS_FILEPATH
 
     for run_number in range(num_iterations):
         """
