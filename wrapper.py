@@ -346,6 +346,13 @@ def filter_output(run_number, jobs, script_path, n):
 
     # Save original distances using bins from build_distribution
     plot_and_save_distances(distances, run_number, bin_centers, n)
+
+    # Save raw colabfold output before duplications
+    raw_output_dir = "raw_output/"
+    subprocess.run(["mkdir", "-p", raw_output_dir])
+    subprocess.run(["cp", "-r", f"{outputdir}/", f"{raw_output_dir}/"])
+    subprocess.run(["mv", "-r", f"{raw_output_dir}/{outputdir}/", f"{raw_output_dir}/iteration{run_number}"])
+
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
@@ -385,6 +392,7 @@ def filter_output(run_number, jobs, script_path, n):
             template_number = template_number + 1
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
+
         # Clear ouput directory
         if run_number < num_iterations:
             clear_directory(outputdir)

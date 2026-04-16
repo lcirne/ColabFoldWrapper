@@ -21,7 +21,6 @@ def compute_E(distances, R_0=51):
 
 
 def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=None) -> str:
-
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
     total_strucs = len(effs)
@@ -33,6 +32,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=Non
         min_d = effs.min()
         max_d = effs.max()
         bin_edges = np.arange(min_d, max_d + bins, bins)
+        bin_edges = np.arange(0, 1 + bins, bins)
     else:
         # If bins is an array (from build_distribution), use it directly
         bin_edges = bins
@@ -48,7 +48,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=Non
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
-    xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
+    xticks = np.arange(0, 1, 0.05)
     plt.xticks(xticks)
     plt.tight_layout()
 

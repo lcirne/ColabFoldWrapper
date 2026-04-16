@@ -3,7 +3,7 @@ import numpy as np
 import wrapper
 import data_engine as engine
 
-dirpath = "/Users/nikan/Documents/ma_lab/ColabFoldWrapper/graphing-utils/templates/iteration3"
+dirpath = "/Users/nikan/Documents/ma_lab/ColabFoldWrapper/graphing-utils/templates/iteration5"
 dir_contents = os.listdir(dirpath)
 
 distances = {}
