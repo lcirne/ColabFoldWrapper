@@ -21,6 +21,7 @@ def compute_E(distances, R_0=51):
 
 
 def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=None) -> str:
+
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
     total_strucs = len(effs)
@@ -50,6 +51,15 @@ def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=Non
     xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
+
+    # Gaussian curve (same x-range as histogram)
+    y_exp = 0.291   # mean
+    sigma = 0.083   # stdev
+    x = np.linspace(bin_edges.min(), bin_edges.max(), 500)
+    gaussian = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - y_exp) / sigma) ** 2)
+    # Scale to match histogram frequency
+    gaussian_scaled = gaussian * len(effs) * (bin_edges[1] - bin_edges[0])
+    plt.plot(x, gaussian_scaled, color="red", linewidth=2, label="Ideal Gaussian")
 
     # Save
     plot_name = "iteration_distances_hist"
