@@ -440,7 +440,7 @@ def plot_and_save_distances(distances, run_number, bin_centers, n):
     subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
     return 0
 
-def plot_fret_efficiencies(distances, run_number, bin_centers: list[float], n):
+def plot_fret_efficiencies(distances: dict, run_number: int, bin_centers: list[float], n: int):
     os.makedirs("distribution_graphs", exist_ok=True)
     plot_name = f"{engine.graph_output_accuracy(distances, bins=bin_centers, N=n)}"
     subprocess.run(["mv", f"{plot_name}.png", "graphing-utils/distribution_graphs/"])
