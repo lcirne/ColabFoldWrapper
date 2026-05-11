@@ -358,6 +358,7 @@ def filter_output(run_number, jobs, script_path, n):
         try:
             os.mkdir("iterations")
         except FileExistsError:
+            print(">>> APPENDING TO ITERATIONS DIRECTORY")
         try:
             os.mkdir(f"iterations/{temp_dir}")
         except FileExistsError:
@@ -369,6 +370,7 @@ def filter_output(run_number, jobs, script_path, n):
         try:
             os.mkdir("raw_output")
         except FileExistsError:
+            print(">>> APPENDING TO RAW OUTPUT DIRECTORY")
         try:
             os.mkdir(f"raw_output/{raw_output_subdir}")
         except FileExistsError:
