@@ -347,30 +347,37 @@ def filter_output(run_number, jobs, script_path, n):
     # Save original distances using bins from build_distribution
     plot_and_save_distances(distances, run_number, bin_centers, n)
 
-    # Save raw colabfold output before duplications
-    raw_output_dir = "raw_output/"
-    subprocess.run(["mkdir", "-p", raw_output_dir])
-    subprocess.run(["cp", "-r", f"{outputdir}/", f"{raw_output_dir}/"])
-    subprocess.run(["mv", "-r", f"{raw_output_dir}/{outputdir}/", f"{raw_output_dir}/iteration{run_number}"])
-
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
     if not included_distances:
         print("###### NO VALID TEMPLATES PRODUCED ######")
         update_temp_dir(script_path, temp_dir)
     else:
+        # Creating dir for selected templates
         temp_dir = f"iteration{run_number + 1}"
         try:
             os.mkdir("iterations")
-            print(">>> CREATING DIRECTORY FOR BEST TEMPLATES")
         except FileExistsError:
-            print(">>> APPENDING TO ITERATIONS DIRECTORY")
-
         try:
             os.mkdir(f"iterations/{temp_dir}")
         except FileExistsError:
             shutil.rmtree(f"iterations/{temp_dir}")
             os.mkdir(f"iterations/{temp_dir}")
+
+        # Creating dir for raw output
+        raw_output_subdir = f"raw_output{run_number + 1}"
+        try:
+            os.mkdir("raw_output")
+        except FileExistsError:
+        try:
+            os.mkdir(f"raw_output/{raw_output_subdir}")
+        except FileExistsError:
+            shutil.rmtree(f"raw_output/{raw_output_subdir}")
+            os.mkdir(f"raw_output/{raw_output_subdir}")
+
+        subprocess.run(["cp", "-r", f"{outputdir}/", f"raw_output/{raw_output_subdir}/"])
+        subprocess.run(["mv", "-r", f"raw_output/{raw_output_subdir}/{outputdir}/*", f"raw_output/{raw_output_subdir}/"])
+        subprocess.run(["rm", "-rf", f"raw_output/{raw_output_subdir}/{outputdir}"])
 
         template_number = 0
         for filename, distance in included_distances.items():
