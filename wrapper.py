@@ -108,7 +108,7 @@ def initialize_project(jobs):
     while True:
         iters = input("Desired number of iterations for the wrapper (integer) (min 1): ")
         try:
-            if int(iters) > 1:
+            if int(iters) >= 1:
                 set_num_iterations(int(iters))
                 break
             else:
@@ -141,9 +141,21 @@ def initialize_project(jobs):
         except ValueError:
                 print("###### Invalid input #######")
     key_values.append(("m_e_msa", m_e_msa))
-
     m_msa = m_e_msa // 2
     key_values.append(("m_msa", m_msa))
+
+
+    while True:
+        num_models = input("Desired number of AlphaFold models (integer) (min 1) (max 5): ")
+        try:
+            if 1 <= int(num_models) and int(num_models) <= 5:
+                num_models = int(num_models)
+                break
+            else:
+                print("###### Invalid input #######")
+        except ValueError:
+                print("###### Invalid input #######")
+    key_values.append(("num_models", num_models))
 
     # Variable for full output directory by user, job id, and max msa's
     dir_name = f"{username}{current_JID}mm{m_msa}"
@@ -166,6 +178,7 @@ m_msa={m_msa}
 inputfile=./{input_file}
 outputdir={outputdir}
 temp_dir={temp_dir}
+num_models={num_models}
 
 colabfold_batch --pair-mode unpaired_paired --templates \\
 --msa-mode mmseqs2_uniref_env \\
@@ -174,9 +187,10 @@ colabfold_batch --pair-mode unpaired_paired --templates \\
 --use-dropout \\
 --num-seeds $num_s \\
 --num-recycle $num_c \\
---num-models 5 \\
+--num-models $num_models \\
 $inputfile $outputdir
     """
+
     # Create shell script to execute ColabFold
     with open(script_path, 'w') as file:
         print(">>> WRITING SHELL SCRIPT")
@@ -276,6 +290,7 @@ def get_from_current_job(jobs_file, items) -> list:
         with open(jobs_file, "r") as file:
             jobs_dict = json.load(file)
             current_job_info = list(jobs_dict["jobs"][-1].values())
+            print(current_job_info)
             requested_items = []
             for item in items:
                 match item:
@@ -297,8 +312,10 @@ def get_from_current_job(jobs_file, items) -> list:
                         requested_items.append(current_job_info[7])
                     case "m_msa":
                         requested_items.append(current_job_info[8])
-                    case "outputdir":
+                    case "run_number":
                         requested_items.append(current_job_info[9])
+                    case "outputdir":
+                        requested_items.append(current_job_info[10])
         return requested_items
     except FileNotFoundError:
         print("###### JSON FILE NOT FOUND ######")
@@ -317,6 +334,7 @@ def filter_output(run_number, jobs, script_path, n):
     """
     # Load json and obtain outputdir and temp_dir
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
+    print(outputdir)
 
     current_dir = os.getcwd()
     #colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
