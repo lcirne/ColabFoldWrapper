@@ -276,12 +276,13 @@ def append_mods_json(mods_file, mods_dict):
             print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
             subprocess.run(["touch", mods_file])
         except json.JSONDecodeError:
-            mods_json = {"mods": []}
+            mods_str = {"mods": []}
 
-    mods_json["mods"].append(mods_dict)
+    mods_json["mods"].append(mods_str)
     with open(mods_file, "w") as f:
         print(f">>> APPENDING JSON TO {mods_file}")
-        json.dump(mods_json, f, indent=4)
+        print(mods_dict)
+        json.dump(mods_dict, f, indent=4)
         print("###### COMPLETE ######")
 
 
@@ -525,6 +526,7 @@ def main():
     subprocess.run(["rm", "-rf", outputdir_container])
 
     # Append mod_counts to json logs
+    print(mod_counts)
     append_mods_json(mods, mod_counts)
 
 
