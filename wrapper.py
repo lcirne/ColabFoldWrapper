@@ -337,11 +337,25 @@ def filter_output(run_number, jobs, script_path, n):
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
     print(outputdir)
 
-    current_dir = os.getcwd()
-    #colabfold_output = os.listdir(f"{current_dir}/{outputdir}")
-    colabfold_output = os.listdir(f"{outputdir}")
+    # TODO: Adding a section of code that will create a pool of output structures from all iterations.
+    # This is the pool of structures that build_distribution will draw from as opposed to only structures
+    # from the most recent iteration.
 
-   # Loop through files and run DistanceFinder.py on each
+    # 1. Create the pool dir
+    # Need to test if this works, creates pool dir in the *mm-container/ directory
+    output_path = Path(outputdir)
+    parent_dir = output_path.parent
+    output_pool = parent_dir / "new_directory"
+    output_pool.mkdir(exist_ok=True)
+
+    # 2. Copy outputdir contents to the pool dir (append)
+    subprocess.run(["cp", f"{outputdir}/*", f"{output_pool}"])
+
+    # 3. Pass the pool dir to build_distribution
+    # TODO:
+
+    colabfold_output = os.listdir(f"{outputdir}")
+    # Loop through files and run DistanceFinder.py on each
     distances = {}
     for file in colabfold_output:
         if file.endswith(".pdb"):
