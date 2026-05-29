@@ -349,17 +349,33 @@ def filter_output(run_number, jobs, script_path, n):
     output_pool.mkdir(exist_ok=True)
 
     # 2. Copy outputdir contents to the pool dir (append)
-    subprocess.run(["cp", f"{outputdir}/*", f"{output_pool}"])
+    subprocess.run(["cp", "-r", f"{outputdir}/", f"{output_pool}/"])
+    subprocess.run(["mv", f"{output_pool}/{outputdir}", f"{output_pool}/iteration{run_number + 1}/"])
 
     # 3. Pass the pool dir to build_distribution
-    # TODO:
+    # ++++++++++++++++++++++++++++++++++++++++
+    colabfold_output = []
+    # Traverse output_pool with os.walk, checking each iteration subdirectory
+    for root, dirs, files in os.walk(output_pool):
+        for file in files:
+            if file.endswith(".pdb"): # Filter for pdbs only
+                abs_path = os.path.abspath(os.path.join(root, file))
+                colabfold_output.append(abs_path)
 
+    distances = {}
+    for file_abs_path in colabfold_output:
+        distances[file] = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
+    # ++++++++++++++++++++++++++++++++++++++++
+
+    #TODO: Test above section and delete below section
+    # ----------------------------------------
     colabfold_output = os.listdir(f"{outputdir}")
     # Loop through files and run DistanceFinder.py on each
     distances = {}
     for file in colabfold_output:
         if file.endswith(".pdb"):
             distances[file] = float(run_distance_finder(f"{outputdir}/{file}", "100", "473"))
+    # ----------------------------------------
 
     distances_to_convert = np.array(list(distances.values()))
     e_conversions = engine.compute_E(distances_to_convert)
