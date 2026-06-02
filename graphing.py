@@ -1,10 +1,19 @@
+"""
+Run script with filepath for directory containing the structures to be plotted.
+"""
+
 import os
+import sys
 import numpy as np
 import wrapper
 import data_engine as engine
 
-dirpath = "/Users/nikan/Documents/ma_lab/ColabFoldWrapper/graphing-utils/templates/iteration5"
-dir_contents = os.listdir(dirpath)
+if len(sys.argv) > 1:
+    dirpath = sys.argv[1]
+    dir_contents = os.listdir(dirpath)
+else:
+    print("No filepath entered, exiting.")
+    exit
 
 distances = {}
 for file in dir_contents:
