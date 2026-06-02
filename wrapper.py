@@ -350,7 +350,12 @@ def filter_output(run_number, jobs, script_path, n):
 
     # 2. Copy outputdir contents to the pool dir (append)
     subprocess.run(["cp", "-r", f"{outputdir}/", f"{output_pool}/"])
-    subprocess.run(["mv", f"{output_pool}/{outputdir}", f"{output_pool}/iteration{run_number + 1}/"])
+    output_name = os.path.basename(outputdir)
+    subprocess.run([
+        "mv",
+        f"{output_pool}/{output_name}",
+        f"{output_pool}/iteration{run_number + 1}"
+    ])
 
     # 3. Pass the pool dir to build_distribution
     # ++++++++++++++++++++++++++++++++++++++++
@@ -426,9 +431,8 @@ def filter_output(run_number, jobs, script_path, n):
             shutil.rmtree(f"raw_output/{raw_output_subdir}")
             os.mkdir(f"raw_output/{raw_output_subdir}")
 
-        subprocess.run(["cp", "-r", f"{outputdir}/", f"raw_output/{raw_output_subdir}/"])
-        subprocess.run(["mv", "-r", f"raw_output/{raw_output_subdir}/{outputdir}/*", f"raw_output/{raw_output_subdir}/"])
-        subprocess.run(["rm", "-rf", f"raw_output/{raw_output_subdir}/{outputdir}"])
+        print(">>> POPULATING RAW OUTPUT DIR")
+        subprocess.run(f"cp -r {outputdir}/* raw_output/{raw_output_subdir}/", shell=True, check=True)
 
         template_number = 0
         for filename, distance in included_distances.items():
