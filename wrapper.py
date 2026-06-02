@@ -345,7 +345,7 @@ def filter_output(run_number, jobs, script_path, n):
     # Need to test if this works, creates pool dir in the *mm-container/ directory
     output_path = Path(outputdir)
     parent_dir = output_path.parent
-    output_pool = parent_dir / "new_directory"
+    output_pool = parent_dir / "output_pool"
     output_pool.mkdir(exist_ok=True)
 
     # 2. Copy outputdir contents to the pool dir (append)
@@ -430,9 +430,6 @@ def filter_output(run_number, jobs, script_path, n):
         except FileExistsError:
             shutil.rmtree(f"raw_output/{raw_output_subdir}")
             os.mkdir(f"raw_output/{raw_output_subdir}")
-
-        print(">>> POPULATING RAW OUTPUT DIR")
-        subprocess.run(f"cp -r {outputdir}/* raw_output/{raw_output_subdir}/", shell=True, check=True)
 
         template_number = 0
         for filename, distance in included_distances.items():
