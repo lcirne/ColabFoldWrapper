@@ -276,9 +276,9 @@ def append_mods_json(mods_file, mods_dict):
             print(f">>> EXCEPTION WHEN APPENDING TO {mods_file}: {e}")
             subprocess.run(["touch", mods_file])
         except json.JSONDecodeError:
-            mods_str = {"mods": []}
+            mods_json = {"mods": []}
 
-    mods_json["mods"].append(mods_str)
+    mods_json["mods"].append(mods_dict)
     with open(mods_file, "w") as f:
         print(f">>> APPENDING JSON TO {mods_file}")
         print(mods_dict)
@@ -420,16 +420,16 @@ def filter_output(run_number, jobs, script_path, n):
             os.mkdir(f"iterations/{temp_dir}")
 
         # Creating dir for raw output
-        raw_output_subdir = f"raw_output{run_number + 1}"
-        try:
-            os.mkdir("raw_output")
-        except FileExistsError:
-            print(">>> APPENDING TO RAW OUTPUT DIRECTORY")
-        try:
-            os.mkdir(f"raw_output/{raw_output_subdir}")
-        except FileExistsError:
-            shutil.rmtree(f"raw_output/{raw_output_subdir}")
-            os.mkdir(f"raw_output/{raw_output_subdir}")
+        #raw_output_subdir = f"raw_output{run_number + 1}"
+        #try:
+        #    os.mkdir("raw_output")
+        #except FileExistsError:
+        #    print(">>> APPENDING TO RAW OUTPUT DIRECTORY")
+        #try:
+        #    os.mkdir(f"raw_output/{raw_output_subdir}")
+        #except FileExistsError:
+        #    shutil.rmtree(f"raw_output/{raw_output_subdir}")
+        #    os.mkdir(f"raw_output/{raw_output_subdir}")
 
         template_number = 0
         for filename, distance in included_distances.items():
@@ -453,7 +453,7 @@ def filter_output(run_number, jobs, script_path, n):
         update_temp_dir(script_path, f"iterations/{temp_dir}")
 
         # Clear ouput directory
-        if run_number < num_iterations:
+        if run_number < num_iterations - 1:
             clear_directory(outputdir)
     return mod_count
 
@@ -537,7 +537,7 @@ def main():
     mod_counts = {outputdir: {}}
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
-    subprocess.run(["cd", outputdir_container])
+    #subprocess.run(["cd", outputdir_container])
     #mods = os.path.abspath("mod_counts.json")
     mods = MOD_COUNTS_FILEPATH
 
@@ -550,16 +550,19 @@ def main():
         subprocess.run([script_path], check=True)
         iteration_mod_count = filter_output(run_number, jobs, script_path, n)
         mod_counts[outputdir][run_number] = iteration_mod_count
+    print("AFTER LOOP", flush=True)
 
-    # Move iterations directory into output directory to save results
     subprocess.run(["mv", "./iterations/", outputdir])
+    print("AFTER MOVE 1", flush=True)
+
     subprocess.run(["mv", "./distance_distributions/", outputdir])
+    print("AFTER MOVE 2", flush=True)
+
     subprocess.run(["rm", "-rf", outputdir_container])
+    print("AFTER RM", flush=True)
 
-    # Append mod_counts to json logs
-    print(mod_counts)
     append_mods_json(mods, mod_counts)
-
+    print("PROGRAM FINISHED", flush=True)
 
 if __name__ == '__main__':
     main()
