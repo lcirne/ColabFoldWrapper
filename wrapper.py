@@ -282,7 +282,7 @@ def append_mods_json(mods_file, mods_dict):
     with open(mods_file, "w") as f:
         print(f">>> APPENDING JSON TO {mods_file}")
         print(mods_dict)
-        json.dump(mods_dict, f, indent=4)
+        json.dump(mods_json, f, indent=4)
         print("###### COMPLETE ######")
 
 
@@ -549,7 +549,7 @@ def main():
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
         iteration_mod_count = filter_output(run_number, jobs, script_path, n)
-        mod_counts[outputdir][run_number] = iteration_mod_count
+        mod_counts[outputdir][run_number] = int(iteration_mod_count) # Ensure count is NOT np.int64
     print("AFTER LOOP", flush=True)
 
     subprocess.run(["mv", "./iterations/", outputdir])
