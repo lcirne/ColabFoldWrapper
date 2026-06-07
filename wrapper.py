@@ -369,17 +369,17 @@ def filter_output(run_number, jobs, script_path, n):
 
     distances = {}
     for file_abs_path in colabfold_output:
-        distances[file] = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
+        distances[file_abs_path] = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
     # ++++++++++++++++++++++++++++++++++++++++
 
     #TODO: Test above section and delete below section
     # ----------------------------------------
-    colabfold_output = os.listdir(f"{outputdir}")
-    # Loop through files and run DistanceFinder.py on each
-    distances = {}
-    for file in colabfold_output:
-        if file.endswith(".pdb"):
-            distances[file] = float(run_distance_finder(f"{outputdir}/{file}", "100", "473"))
+    #colabfold_output = os.listdir(f"{outputdir}")
+    ## Loop through files and run DistanceFinder.py on each
+    #distances = {}
+    #for file in colabfold_output:
+    #    if file.endswith(".pdb"):
+    #        distances[file] = float(run_distance_finder(f"{outputdir}/{file}", "100", "473"))
     # ----------------------------------------
 
     distances_to_convert = np.array(list(distances.values()))
@@ -550,19 +550,11 @@ def main():
         subprocess.run([script_path], check=True)
         iteration_mod_count = filter_output(run_number, jobs, script_path, n)
         mod_counts[outputdir][run_number] = int(iteration_mod_count) # Ensure count is NOT np.int64
-    print("AFTER LOOP", flush=True)
 
     subprocess.run(["mv", "./iterations/", outputdir])
-    print("AFTER MOVE 1", flush=True)
-
     subprocess.run(["mv", "./distance_distributions/", outputdir])
-    print("AFTER MOVE 2", flush=True)
-
     subprocess.run(["rm", "-rf", outputdir_container])
-    print("AFTER RM", flush=True)
-
     append_mods_json(mods, mod_counts)
-    print("PROGRAM FINISHED", flush=True)
 
 if __name__ == '__main__':
     main()

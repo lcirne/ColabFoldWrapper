@@ -185,7 +185,7 @@ def build_distribution(
 
     mod_count = 0
     for bidx, desired_count in enumerate(target_counts):
-        print(f"desired_count: {desired_count}")
+        #print(f"desired_count: {desired_count}")
         available_files = bin_to_files.get(bidx, [])
 
         if desired_count == 0 or len(available_files) == 0:
@@ -212,7 +212,7 @@ def build_distribution(
                 selected[new_fname] = eff
             else:
                 selected[fname] = eff
-        print(len(chosen))
-        print(len(selected))
+        #print(len(chosen))
+        #print(len(selected))
 
     return selected, bins, bin_centers, mod_count
