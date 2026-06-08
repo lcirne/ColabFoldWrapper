@@ -419,18 +419,6 @@ def filter_output(run_number, jobs, script_path, n):
             shutil.rmtree(f"iterations/{temp_dir}")
             os.mkdir(f"iterations/{temp_dir}")
 
-        # Creating dir for raw output
-        #raw_output_subdir = f"raw_output{run_number + 1}"
-        #try:
-        #    os.mkdir("raw_output")
-        #except FileExistsError:
-        #    print(">>> APPENDING TO RAW OUTPUT DIRECTORY")
-        #try:
-        #    os.mkdir(f"raw_output/{raw_output_subdir}")
-        #except FileExistsError:
-        #    shutil.rmtree(f"raw_output/{raw_output_subdir}")
-        #    os.mkdir(f"raw_output/{raw_output_subdir}")
-
         template_number = 0
         for filename, distance in included_distances.items():
             # Logic to check if a filename is duplicated or not
