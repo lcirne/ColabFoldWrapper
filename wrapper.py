@@ -403,7 +403,7 @@ def filter_output(run_number, jobs, script_path, n):
             os.mkdir(f"iterations/{temp_dir}")
 
         template_number = 0
-        for filename, distance in included_distances.items():
+        for filepath, distance in included_distances.items():
             # Logic to check if a filename is duplicated or not
             # if so, cp the original file with new name and add to temp_dir
             # if not, just cp original file to temp_dir
