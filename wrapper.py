@@ -337,12 +337,7 @@ def filter_output(run_number, jobs, script_path, n):
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
     print(outputdir)
 
-    # TODO: Adding a section of code that will create a pool of output structures from all iterations.
-    # This is the pool of structures that build_distribution will draw from as opposed to only structures
-    # from the most recent iteration.
-
     # 1. Create the pool dir
-    # Need to test if this works, creates pool dir in the *mm-container/ directory
     output_path = Path(outputdir)
     parent_dir = output_path.parent
     output_pool = parent_dir / "output_pool"
@@ -358,7 +353,6 @@ def filter_output(run_number, jobs, script_path, n):
     ])
 
     # 3. Pass the pool dir to build_distribution
-    # ++++++++++++++++++++++++++++++++++++++++
     colabfold_output = []
     # Traverse output_pool with os.walk, checking each iteration subdirectory
     for root, dirs, files in os.walk(output_pool):
@@ -370,17 +364,6 @@ def filter_output(run_number, jobs, script_path, n):
     distances = {}
     for file_abs_path in colabfold_output:
         distances[file_abs_path] = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
-    # ++++++++++++++++++++++++++++++++++++++++
-
-    #TODO: Test above section and delete below section
-    # ----------------------------------------
-    #colabfold_output = os.listdir(f"{outputdir}")
-    ## Loop through files and run DistanceFinder.py on each
-    #distances = {}
-    #for file in colabfold_output:
-    #    if file.endswith(".pdb"):
-    #        distances[file] = float(run_distance_finder(f"{outputdir}/{file}", "100", "473"))
-    # ----------------------------------------
 
     distances_to_convert = np.array(list(distances.values()))
     e_conversions = engine.compute_E(distances_to_convert)
@@ -424,19 +407,35 @@ def filter_output(run_number, jobs, script_path, n):
             # Logic to check if a filename is duplicated or not
             # if so, cp the original file with new name and add to temp_dir
             # if not, just cp original file to temp_dir
+            filepath = Path(filepath)
+            filename = filepath.name
+
             if "_dupe" in filename:
                 seperator = "_dupe"
                 filename_parts = filename.split(seperator, 1)
-                original_filename = f"{filename_parts[0]}.pdb"
-                subprocess.run(["cp", f"{outputdir}/{original_filename}", f"{outputdir}/{filename}"])
 
-            subprocess.run(["cp", f"{outputdir}/{filename}", f"iterations/{temp_dir}"])
-            template_number_str = f"{template_number}"
-            while len(template_number_str) < 4:
-                template_number_str = "0" + template_number_str
-            subprocess.run(["mv", f"iterations/{temp_dir}/{filename}", f"iterations/{temp_dir}/{template_number_str}.pdb"])
+                original_filename = f"{filename_parts[0]}.pdb"
+                original_path = filepath.parent / original_filename
+
+                dupe_path = filepath.parent / filename
+                subprocess.run(["cp", str(original_path), str(dupe_path)])
+
+            subprocess.run([
+                "cp",
+                str(filepath),
+                f"iterations/{temp_dir}"
+            ])
+
+            template_number_str = f"{template_number:04d}"
+
+            subprocess.run([
+                "mv",
+                f"iterations/{temp_dir}/{filename}",
+                f"iterations/{temp_dir}/{template_number_str}.pdb"
+            ])
+
             print(f"###### {filename} ADDED TO {temp_dir} ({distance} A) ######")
-            template_number = template_number + 1
+            template_number += 1
 
         update_temp_dir(script_path, f"iterations/{temp_dir}")
 
