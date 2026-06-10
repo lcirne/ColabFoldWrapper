@@ -377,19 +377,21 @@ def filter_output(run_number, jobs, script_path, n):
     # Convert distances to efficiencies
     old_distances_to_convert = np.array(list(old_iteration_distances.values()))
     old_e_conversions = engine.compute_E(old_distances_to_convert)
-    i = 0
-    for filename, distance in old_iteration_distances.items():
-        old_iteration_distances[filename] = old_e_conversions[i]
-        i += 1
+
+    for filename, eff in zip(
+        old_iteration_distances.keys(),
+        old_e_conversions
+    ):
+        old_iteration_distances[filename] = eff
 
     current_distances_to_convert = np.array(list(current_iteration_distances.values()))
     current_e_conversions = engine.compute_E(current_distances_to_convert)
-    j = 0
-    for filename, distance in current_iteration_distances.items():
-        current_iteration_distances[filename] = current_e_conversions[i]
-        j += 1
-    # Save original distances using bins from build_distribution
-    plot_and_save_distances(current_iteration_distances, run_number, bin_centers, n)
+
+    for filename, eff in zip(
+        current_iteration_distances.keys(),
+        current_e_conversions
+    ):
+        current_iteration_distances[filename] = eff
 
     distances = old_iteration_distances | current_iteration_distances
 
@@ -400,6 +402,9 @@ def filter_output(run_number, jobs, script_path, n):
     y_exp = 0.291
     sigma = 0.083
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
+
+    # Save original distances using bins from build_distribution
+    plot_and_save_distances(current_iteration_distances, run_number, bin_centers, n)
 
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
