@@ -346,10 +346,11 @@ def filter_output(run_number, jobs, script_path, n):
     # 2. Copy outputdir contents to the pool dir (append)
     subprocess.run(["cp", "-r", f"{outputdir}/", f"{output_pool}/"])
     output_name = os.path.basename(outputdir)
+    current_iteration = f"iteration{run_number+1}"
     subprocess.run([
         "mv",
         f"{output_pool}/{output_name}",
-        f"{output_pool}/iteration{run_number + 1}"
+        f"{output_pool}/{current_iteration}"
     ])
 
     # 3. Pass the pool dir to build_distribution
@@ -361,28 +362,44 @@ def filter_output(run_number, jobs, script_path, n):
                 abs_path = os.path.abspath(os.path.join(root, file))
                 colabfold_output.append(abs_path)
 
-    distances = {}
+    old_iteration_distances = {}
+    current_iteration_distances = {}
+    # Find distances between "probes"
     for file_abs_path in colabfold_output:
-        distances[file_abs_path] = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
+        distance = float(run_distance_finder(f"{file_abs_path}", "100", "473"))
+        # Separate into new and old distances to graph current distribution in
+        # in isolation before sampling from all
+        if current_iteration in file_abs_path:
+            current_iteration_distances[file_abs_path] = distance
+        else:
+            old_iteration_distances[file_abs_path] = distance
 
-    distances_to_convert = np.array(list(distances.values()))
-    e_conversions = engine.compute_E(distances_to_convert)
+    # Convert distances to efficiencies
+    old_distances_to_convert = np.array(list(old_iteration_distances.values()))
+    old_e_conversions = engine.compute_E(old_distances_to_convert)
     i = 0
-    for filename, distance in distances.items():
-        distances[filename] = e_conversions[i]
+    for filename, distance in old_iteration_distances.items():
+        old_iteration_distances[filename] = old_e_conversions[i]
         i += 1
 
-    # Finished implementation:
-    # write algorithm to determine which files to extract from distances
+    current_distances_to_convert = np.array(list(current_iteration_distances.values()))
+    current_e_conversions = engine.compute_E(current_distances_to_convert)
+    j = 0
+    for filename, distance in current_iteration_distances.items():
+        current_iteration_distances[filename] = current_e_conversions[i]
+        j += 1
+    # Save original distances using bins from build_distribution
+    plot_and_save_distances(current_iteration_distances, run_number, bin_centers, n)
+
+    distances = old_iteration_distances | current_iteration_distances
+
+    # Execute algorithm to determine which files to extract from distances
     # and add to included_distances to fit a normal distribution
-    # remember to normalize data points
-    # duplicate templates if necessary to fit proper distribution.
+    # Remember to normalize data points
+    # Duplicate / discard templates if necessary to fit proper distribution.
     y_exp = 0.291
     sigma = 0.083
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
-
-    # Save original distances using bins from build_distribution
-    plot_and_save_distances(distances, run_number, bin_centers, n)
 
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
@@ -516,9 +533,16 @@ def main():
     jobs = os.path.abspath("jobs.json")
     script_path = initialize_project(jobs)
 
+    # Remove output pool from any previous wrapper run
+    n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    output_path = Path(outputdir)
+    parent_dir = output_path.parent
+    output_pool = parent_dir / "output_pool"
+    if output_pool.exists():
+        shutil.rmtree(output_pool)
+
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
     # n represents the number of templates that will be passed on in each iteration
-    n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
     outputdir_container = f"{outputdir}-container"
     n = int(n)
     mod_counts = {outputdir: {}}
