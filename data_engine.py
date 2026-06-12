@@ -98,7 +98,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black", label=f"Structures per Distance (Å)\nTotal Structures: {total_strucs}")
+            color="mediumseagreen", edgecolor="black", label=f"Structures per Efficiency\nTotal Structures: {total_strucs}")
     plt.title("CF Output Structures Separated by FRET Efficiency")
     plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
