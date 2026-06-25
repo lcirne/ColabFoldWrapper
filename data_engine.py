@@ -105,7 +105,8 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
     plt.legend(title=f"N: {N}")
 
     # Set x-axis ticks
-    xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
+    #xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
+    xticks = np.arange(0, 1, 0.05)
     plt.xticks(xticks)
     plt.tight_layout()
 
@@ -216,3 +217,7 @@ def build_distribution(
         #print(len(selected))
 
     return selected, bins, bin_centers, mod_count
+
+
+def mse(file_eff_dict: dict, mean: float, stdev: float):
+    pass
