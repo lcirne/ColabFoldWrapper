@@ -167,7 +167,8 @@ def initialize_project(jobs):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     script_name = "wrapper.sh"
     script_path = os.path.join(current_dir, script_name)
-    # Writing script
+
+    # -------------------- Writing script --------------------
     script_content = f"""#!/bin/bash
 JID={current_JID}
 num_c={num_c}
@@ -190,6 +191,7 @@ colabfold_batch --pair-mode unpaired_paired --templates \\
 --num-models $num_models \\
 $inputfile $outputdir
     """
+    # -------------------------------------------------------
 
     # Create shell script to execute ColabFold
     with open(script_path, 'w') as file:
