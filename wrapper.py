@@ -16,7 +16,7 @@ import numpy as np
 import data_engine as engine
 
 # ---- Global Variables ----
-MOD_COUNTS_FILEPATH = "/home/lcirne/scratch/mod_counts.json"
+MOD_COUNTS_FILEPATH = "/gpfs1/home/l/c/lcirne/ColabFoldWrapper/mod_counts.json"
 
 num_iterations = 0
 
@@ -217,7 +217,7 @@ def delete_directory(dir_path):
         shutil.rmtree(dir_path)
         return True
     except OSError:
-        return False        
+        return False
 
 
 def clear_directory(dir_path):
@@ -579,6 +579,7 @@ def main():
     outputdir_container = f"{outputdir}-container"
     n = int(n) # n = number of templates passed as input through iterations
     mod_counts = {outputdir: {}}
+
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
     #subprocess.run(["cd", outputdir_container])
