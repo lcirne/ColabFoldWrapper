@@ -48,8 +48,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=Non
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
-    xticks = np.arange(0, 1, 0.05)
-    plt.xticks(xticks)
+    plt.xticks(0, 1, 0.05)
     plt.tight_layout()
 
     # Gaussian curve (same x-range as histogram)
@@ -118,8 +117,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
 
     # Set x-axis ticks
     #xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
-    increment = 0.025
-    xticks = np.arange(0, 1+increment, increment)
+    xticks = np.arange(0, 1, 0.05)
     plt.xticks(xticks)
     plt.tight_layout()
 
