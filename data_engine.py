@@ -92,8 +92,20 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
         bin_edges = bins
         bin_centers = bin_edges[:-1] + (bin_edges[1] - bin_edges[0]) / 2
 
+    print("===== GRAPH DEBUG =====")
+    print("Number of efficiencies:", len(effs))
+    print("Efficiencies:")
+    print(effs)
+
+    print("Bin edges:")
+    print(bin_edges)
+
     # Count how many values fall into each bin
     counts, _ = np.histogram(effs, bins=bin_edges)
+
+    print("Histogram counts:")
+    print(counts)
+    print("=======================")
 
     # --- Plot ---
     plt.figure(figsize=(8, 5))
@@ -106,7 +118,8 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
 
     # Set x-axis ticks
     #xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
-    xticks = np.arange(0, 1, 0.05)
+    increment = 0.025
+    xticks = np.arange(0, 1+increment, increment)
     plt.xticks(xticks)
     plt.tight_layout()
 
@@ -162,7 +175,7 @@ def build_distribution(
     min_val, max_val = efficiencies.min(), efficiencies.max()
     #print(f"min_val: {min_val} max_val: {max_val}")
     #bins = np.arange(min_val, max_val + bin_width, bin_width)
-    bins = np.arange(0, 1, bin_width)
+    bins = np.arange(0, 1+bin_width, bin_width)
 
     # Bin assignments for each efficiency
     bin_indices = np.digitize(efficiencies, bins) - 1
