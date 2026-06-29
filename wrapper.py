@@ -543,7 +543,7 @@ def main():
 
     jobs = os.path.abspath("jobs.json")
     iterations_script_path, script_content = initialize_project(jobs)
-    i0_script_path = script_path
+    i0_script_path = iterations_script_path
 
     # TODO: write logic to handle cli flag for running initial
     # iterations with no custom template input using argparse.
@@ -560,8 +560,8 @@ def main():
     if no_templates:
         # Generate a new script without --custom-template-path flag
         # and change i0_script_path
-        i0_script_path = f"{script_path[:-3]}_i0.sh"
-        with open(f"{i0_script_path}"):
+        i0_script_path = f"{iterations_script_path[:-3]}_i0.sh"
+        with open(f"{i0_script_path}", "w"):
             for line in script_content.splitlines():
                 if line.startswith("--custom-template-path"):
                     continue
