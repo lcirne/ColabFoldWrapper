@@ -183,6 +183,8 @@ outputdir={outputdir}
 temp_dir={temp_dir}
 num_models={num_models}
 
+export PATH="/gpfs1/home/l/c/lcirne/localcolabfold/.pixi/envs/default/bin:${{PATH}}"
+
 colabfold_batch --pair-mode unpaired_paired --templates \\
 --msa-mode mmseqs2_uniref_env \\
 --custom-template-path $temp_dir \\
@@ -485,7 +487,7 @@ def run_distance_finder(structure_file, p1, p2):
         str or None: Distance in angstroms as a string, or None if failed.
     """
     distance = subprocess.run(
-        ["python3", "distance_finder/DistanceFinder.py", structure_file, p1, p2],
+        [sys.executable, "distance_finder/DistanceFinder.py", structure_file, p1, p2],
         capture_output=True,
         text=True
     )
@@ -561,7 +563,7 @@ def main():
         # Generate a new script without --custom-template-path flag
         # and change i0_script_path
         i0_script_path = f"{iterations_script_path[:-3]}_i0.sh"
-        with open(f"{i0_script_path}", "w"):
+        with open(f"{i0_script_path}", "w") as file:
             for line in script_content.splitlines():
                 if line.startswith("--custom-template-path"):
                     continue
