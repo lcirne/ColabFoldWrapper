@@ -16,7 +16,7 @@ import numpy as np
 import data_engine as engine
 
 # ---- Global Variables ----
-MOD_COUNTS_FILEPATH = "/gpfs1/home/l/c/lcirne/ColabFoldWrapper/mod_counts.json"
+MOD_COUNTS_FILEPATH = "/home/lcirne/scratch/mod_counts.json"
 
 num_iterations = 0
 
@@ -556,7 +556,7 @@ def main():
                         help="Turn off custom templates for the inital iteration of ColabFold Wrapper")
 
     args = parser.parse_args()
-    no_templates = getattr(args, "no_templates", False):
+    no_templates = getattr(args, "no_templates", False)
     if no_templates:
         # Generate a new script without --custom-template-path flag
         # and change i0_script_path
