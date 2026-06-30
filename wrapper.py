@@ -508,7 +508,7 @@ def update_temp_dir(script_path, dir_name):
     """
     with open(script_path, 'r') as file:
         lines = file.readlines()
-    
+
     with open(script_path, 'w') as file:
         for line in lines:
             if line.startswith("temp_dir="):
@@ -548,11 +548,6 @@ def main():
     iterations_script_path, script_content = initialize_project(jobs)
     i0_script_path = iterations_script_path
 
-    # TODO: write logic to handle cli flag for running initial
-    # iterations with no custom template input using argparse.
-    # may eventually want to move this logic into initialize_project,
-    # pass no_templates cli flag value to function as an additional arg
-    # and replace logic here with an if statement
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-templates", 
                         action="store_true", 
@@ -566,6 +561,9 @@ def main():
         i0_script_path = f"{iterations_script_path[:-3]}_i0.sh"
         with open(f"{i0_script_path}", "w") as file:
             for line in script_content.splitlines():
+                if line.startswith("num_s="):
+                    # When using no custom templates, default to 5 models
+                    line = "num_s=5"
                 if line.startswith("--custom-template-path"):
                     continue
                 file.write(line + "\n")
