@@ -596,6 +596,9 @@ def main():
             script_path = i0_script_path
         else:
             script_path = iterations_script_path
+        print("-"*30)
+        print("Running script from: ", script_path)
+        print("-"*30)
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
         iteration_mod_count = filter_output(run_number, jobs, script_path, n)
