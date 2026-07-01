@@ -117,7 +117,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.025, graph_name=None, N
 
     # Set x-axis ticks
     #xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
-    xticks = np.arange(0, 1, 0.05)
+    xticks = np.arange(0, 1+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
 
