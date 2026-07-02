@@ -409,9 +409,11 @@ def filter_output(run_number, jobs, script_path, n):
     sigma = 0.083
     included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
 
-    # Save original distances using bins from build_distribution
+    # Plot and save original distances using bins from build_distribution
     plot_and_save_distances(current_iteration_distances, run_number, bins, n)
-    #print(current_iteration_distances)
+
+    # Plot and save filtered distances
+    plot_and_save_distances(included_distances, run_number, bins, n, dirname="filtered_distributions")
 
     # If included_distances dictionary is still empty after checks,
     # proceed to next iteration with user provided templates 
@@ -517,10 +519,10 @@ def update_temp_dir(script_path, dir_name):
                 file.write(line)
 
 
-def plot_and_save_distances(distances, run_number, bin_edges, n):
-    os.makedirs("distance_distributions", exist_ok=True)
+def plot_and_save_distances(distances, run_number, bin_edges, n, dirname="distance_distributions"):
+    os.makedirs(dirname, exist_ok=True)
     plot_name = f"{engine.graph_output_accuracy_bar(distances, bins=bin_edges, N=n)}"
-    subprocess.run(["mv", f"{plot_name}.png", f"./distance_distributions/{plot_name}{run_number+1}.png"])
+    subprocess.run(["mv", f"{plot_name}.png", f"./{dirname}/{plot_name}{run_number+1}.png"])
     return 0
 
 
@@ -605,7 +607,7 @@ def main():
         mod_counts[outputdir][run_number] = int(iteration_mod_count) # Ensure count is NOT np.int64
 
     subprocess.run(["mv", "./iterations/", outputdir])
-    subprocess.run(["mv", "./distance_distributions/", outputdir])
+    subprocess.run(["mv", './*distributions/', outputdir])
     subprocess.run(["rm", "-rf", outputdir_container])
     append_mods_json(mods, mod_counts)
 
