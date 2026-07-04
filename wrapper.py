@@ -563,9 +563,9 @@ def main():
         i0_script_path = f"{iterations_script_path[:-3]}_i0.sh"
         with open(f"{i0_script_path}", "w") as file:
             for line in script_content.splitlines():
-                if line.startswith("num_s="):
+                if line.startswith("num_models="):
                     # When using no custom templates, default to 5 models
-                    line = "num_s=5"
+                    line = "num_models=5"
                 if line.startswith("--custom-template-path"):
                     continue
                 file.write(line + "\n")
