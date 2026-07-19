@@ -68,7 +68,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=Non
     return plot_name
 
 
-def graph_output_accuracy_bar(efficiencies: dict, bins=0.005, graph_name=None, N=None) -> str:
+def graph_output_accuracy_bar(efficiencies: dict, bins=0.0083, graph_name=None, N=None) -> str:
     """
     Plots a bar chart where each bar corresponds to a histogram bin.
     X values are bin centers, and Y values are counts of efficiencies in each bin.
@@ -133,7 +133,7 @@ def build_distribution(
     file_eff_dict: dict,
     mean: float,
     std: float,
-    bin_width: float = 0.005,
+    bin_width: float = 0.0083,
     seed: int = None,
     n: int = None
 ) -> dict:
