@@ -6,5 +6,7 @@ todo.txt
 .venv
 .png
 .pyc
-.DS_Store
 __pycache__/
+.DS_Store
+graphing-utils/templates/
+graphing-utils/distribution_graphs/

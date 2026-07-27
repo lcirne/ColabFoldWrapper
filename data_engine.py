@@ -20,16 +20,19 @@ def compute_E(distances, R_0=51):
     return distances
 
 
-def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy(efficiencies: dict, bins=0.025, graph_name=None, N=None) -> str:
     # Collect and convert distances
     effs = np.array([float(d) for d in efficiencies.values()])
-    N = len(effs)
+    total_strucs = len(effs)
+    if not N:
+        N = total_strucs
 
     # If bins is a float, treat it as bin width and generate edges
     if isinstance(bins, float) or isinstance(bins, int):
         min_d = effs.min()
         max_d = effs.max()
         bin_edges = np.arange(min_d, max_d + bins, bins)
+        bin_edges = np.arange(0, 1 + bins, bins)
     else:
         # If bins is an array (from build_distribution), use it directly
         bin_edges = bins
@@ -39,15 +42,23 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     #print(bin_edges[:5], bin_edges[-5:])
     # Plot
     plt.figure(figsize=(8, 5))
-    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label="Structures per Distance (Å)")
-    plt.title("CF Output Distances (Å)")
-    plt.xlabel("Distance (Å)")
+    plt.hist(effs, bins=bin_edges, edgecolor="black", color="skyblue", label=f"Structures per Efficiency\ntotal structures: {total_strucs}")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
+    plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
-    xticks = np.arange(bin_edges.min(), bin_edges.max()+0.1, 0.1)
-    plt.xticks(xticks)
+    plt.xticks(0, 1, 0.05)
     plt.tight_layout()
+
+    # Gaussian curve (same x-range as histogram)
+    y_exp = 0.291   # mean
+    sigma = 0.083   # stdev
+    x = np.linspace(bin_edges.min(), bin_edges.max(), 500)
+    gaussian = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - y_exp) / sigma) ** 2)
+    # Scale to match histogram frequency
+    gaussian_scaled = gaussian * len(effs) * (bin_edges[1] - bin_edges[0])
+    plt.plot(x, gaussian_scaled, color="red", linewidth=2, label="Ideal Gaussian")
 
     # Save
     plot_name = "iteration_distances_hist"
@@ -57,7 +68,7 @@ def graph_output_accuracy(efficiencies: dict, bins=0.05, graph_name=None) -> str
     return plot_name
 
 
-def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) -> str:
+def graph_output_accuracy_bar(efficiencies: dict, bins=0.0083, graph_name=None, N=None) -> str:
     """
     Plots a bar chart where each bar corresponds to a histogram bin.
     X values are bin centers, and Y values are counts of efficiencies in each bin.
@@ -65,7 +76,9 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
 
     # Convert dictionary values to numpy array
     effs = np.array([float(d) for d in efficiencies.values()])
-    N = len(effs)
+    total_strucs = len(effs)
+    if not N:
+        N = total_strucs
 
     # Determine bin edges and centers
     if isinstance(bins, float) or isinstance(bins, int):
@@ -78,20 +91,33 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.05, graph_name=None) ->
         bin_edges = bins
         bin_centers = bin_edges[:-1] + (bin_edges[1] - bin_edges[0]) / 2
 
+    print("===== GRAPH DEBUG =====")
+    print("Number of efficiencies:", len(effs))
+    print("Efficiencies:")
+    print(effs)
+
+    print("Bin edges:")
+    print(bin_edges)
+
     # Count how many values fall into each bin
     counts, _ = np.histogram(effs, bins=bin_edges)
+
+    print("Histogram counts:")
+    print(counts)
+    print("=======================")
 
     # --- Plot ---
     plt.figure(figsize=(8, 5))
     plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black", label="Structures per Distance (Å)")
-    plt.title("CF Output Distances (Å) — Bar Plot")
-    plt.xlabel("Distance (Å)")
+            color="mediumseagreen", edgecolor="black", label=f"Structures per Efficiency\nTotal Structures: {total_strucs}")
+    plt.title("CF Output Structures Separated by FRET Efficiency")
+    plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
     plt.legend(title=f"N: {N}")
 
     # Set x-axis ticks
-    xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
+    #xticks = np.arange(bin_edges.min(), bin_edges.max() + 0.1, 0.1)
+    xticks = np.arange(0, 1+0.1, 0.1)
     plt.xticks(xticks)
     plt.tight_layout()
 
@@ -107,7 +133,7 @@ def build_distribution(
     file_eff_dict: dict,
     mean: float,
     std: float,
-    bin_width: float = 0.05,
+    bin_width: float = 0.0083,
     seed: int = None,
     n: int = None
 ) -> dict:
@@ -145,8 +171,9 @@ def build_distribution(
 
     # Define bin edges across observed range
     min_val, max_val = efficiencies.min(), efficiencies.max()
-    print(f"min_vale: {min_val} max_val: {max_val}")
-    bins = np.arange(min_val, max_val + bin_width, bin_width)
+    #print(f"min_val: {min_val} max_val: {max_val}")
+    #bins = np.arange(min_val, max_val + bin_width, bin_width)
+    bins = np.arange(0, 1+bin_width, bin_width)
 
     # Bin assignments for each efficiency
     bin_indices = np.digitize(efficiencies, bins) - 1
@@ -155,7 +182,7 @@ def build_distribution(
     # Compute bin centers
     bin_centers = bins[:-1] + bin_width / 2
 
-    # --- Step 3: Compute Gaussian-based target counts ---
+    # --- Compute Gaussian-based target counts ---
     gauss_probs = np.exp(-0.5 * ((bin_centers - mean) / std) ** 2)
     gauss_probs /= gauss_probs.sum()  # normalize
     target_counts = np.round(gauss_probs * N).astype(int)
@@ -171,7 +198,7 @@ def build_distribution(
 
     mod_count = 0
     for bidx, desired_count in enumerate(target_counts):
-        print(f"desired_count: {desired_count}")
+        #print(f"desired_count: {desired_count}")
         available_files = bin_to_files.get(bidx, [])
 
         if desired_count == 0 or len(available_files) == 0:
@@ -180,14 +207,13 @@ def build_distribution(
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
-            mod_count += 1
-
+            mod_count += len(available_files) - desired_count
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division
             extended = available_files * multiplier
             chosen = random.sample(extended, desired_count)
-            mod_count += 1
+            mod_count += desired_count - len(available_files)
 
         # Add chosen pairs with dupe suffixes if needed
 
@@ -199,7 +225,7 @@ def build_distribution(
                 selected[new_fname] = eff
             else:
                 selected[fname] = eff
-        print(len(chosen))
-        print(len(selected))
+        #print(len(chosen))
+        #print(len(selected))
 
     return selected, bins, bin_centers, mod_count
