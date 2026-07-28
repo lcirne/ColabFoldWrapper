@@ -490,7 +490,7 @@ def run_distance_finder(structure_file, p1, p2):
         str or None: Distance in angstroms as a string, or None if failed.
     """
     distance = subprocess.run(
-        [sys.executable, "distance_finder/DistanceFinder.py", structure_file, p1, p2],
+        [sys.executable, "distance_finder.py", structure_file, p1, p2],
         capture_output=True,
         text=True
     )
