@@ -574,6 +574,7 @@ def main():
     n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
     output_path = Path(outputdir)
     parent_dir = output_path.parent
+    print(f"RUNNING FROM PARENT DIR: {parent_dir}")
     output_pool = parent_dir / "output_pool"
     if output_pool.exists():
         shutil.rmtree(output_pool)
@@ -609,6 +610,7 @@ def main():
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", './*distributions/', outputdir])
     subprocess.run(["rm", "-rf", outputdir_container])
+    subprocess.run(["mv", output_pool, parent_dir.parent])
     append_mods_json(mods, mod_counts)
 
 if __name__ == '__main__':
