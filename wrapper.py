@@ -552,9 +552,38 @@ def main():
 
     # ------------------------ CLI flags -------------------------
     parser = argparse.ArgumentParser()
+
+    # ColabFold_batch flags
+    parser.add_argument("--pair-mode",
+                        required=True,
+                        help="ColabFold_batch required flag.",
+                        default="unpaired_paired")
+    parser.add_argument("--templates",
+                        action="store_true",
+                        required=True
+                        help="ColabFold_batch required flag.")
+    parser.add_argument("--msa-mode",
+                        default="mmseqs2_uniref_env")
+    parser.add_argument("--custom-template-path")
+    parser.add_argument("--max-msa",
+                        required=True)
+    parser.add_argument("--use-dropout",
+                        action="store_true")
+    parser.add_argument("--num-seeds",
+                        required=True)
+    parser.add_argument("--num-recycle",
+                        required=True)
+    parser.add_argument("--num-models",
+                        required=True)
+
+    # Wrapper flags
     parser.add_argument("--no-templates",
                         action="store_true",
                         help="Turn off custom templates for the inital iteration of ColabFold Wrapper")
+    parser.add_argument("--num-iterations",
+                        default=10)
+    parser.add_argument("--num-n", "-n",
+                        required=True)
     # ------------------------------------------------------------
     args = parser.parse_args()
     no_templates = getattr(args, "no_templates", False)
