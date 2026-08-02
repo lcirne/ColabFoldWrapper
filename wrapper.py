@@ -550,11 +550,12 @@ def main():
     iterations_script_path, script_content = initialize_project(jobs)
     i0_script_path = iterations_script_path
 
+    # ------------------------ CLI flags -------------------------
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-templates", 
-                        action="store_true", 
+    parser.add_argument("--no-templates",
+                        action="store_true",
                         help="Turn off custom templates for the inital iteration of ColabFold Wrapper")
-
+    # ------------------------------------------------------------
     args = parser.parse_args()
     no_templates = getattr(args, "no_templates", False)
     if no_templates:
