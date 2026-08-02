@@ -611,6 +611,7 @@ def main():
     subprocess.run(["mv", './*distributions/', outputdir])
     subprocess.run(["rm", "-rf", outputdir_container])
     subprocess.run(["mv", output_pool, parent_dir.parent])
+    subprocess.run(["rm", "-rf", parent_dir])
     append_mods_json(mods, mod_counts)
 
 if __name__ == '__main__':
