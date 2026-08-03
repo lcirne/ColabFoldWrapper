@@ -75,6 +75,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.0083, graph_name=None, 
     """
 
     # Convert dictionary values to numpy array
+    filenames = np.array(list(efficiencies.keys()))
     effs = np.array([float(d) for d in efficiencies.values()])
     total_strucs = len(effs)
     if not N:
@@ -99,17 +100,23 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.0083, graph_name=None, 
     print("Bin edges:")
     print(bin_edges)
 
-    # Count how many values fall into each bin
-    counts, _ = np.histogram(effs, bins=bin_edges)
+    # Count unique and duplicated files in each bin separately
+    dupe_mask = np.char.find(np.char.lower(filenames.astype(str)), "dupe") >= 0
+    unique_counts, _ = np.histogram(effs[~dupe_mask], bins=bin_edges)
+    dupe_counts, _ = np.histogram(effs[dupe_mask], bins=bin_edges)
 
-    print("Histogram counts:")
-    print(counts)
+    print("Unique histogram counts:")
+    print(unique_counts)
+    print("Duplicate histogram counts:")
+    print(dupe_counts)
     print("=======================")
 
     # --- Plot ---
     plt.figure(figsize=(8, 5))
-    plt.bar(bin_centers, counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
-            color="mediumseagreen", edgecolor="black", label=f"Structures per Efficiency\nTotal Structures: {total_strucs}")
+    plt.bar(bin_centers, unique_counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
+            color="mediumseagreen", edgecolor="black", label="Unique PDB files")
+    plt.bar(bin_centers, dupe_counts, width=(bin_edges[1] - bin_edges[0]) * 0.9,
+            bottom=unique_counts, color="coral", edgecolor="black", label="Duplicate PDB files")
     plt.title("CF Output Structures Separated by FRET Efficiency")
     plt.xlabel("FRET Efficiency")
     plt.ylabel("Frequency")
