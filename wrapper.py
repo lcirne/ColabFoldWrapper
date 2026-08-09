@@ -560,7 +560,7 @@ def main():
                         default="unpaired_paired")
     parser.add_argument("--templates",
                         action="store_true",
-                        required=True
+                        required=True,
                         help="ColabFold_batch required flag.")
     parser.add_argument("--msa-mode",
                         default="mmseqs2_uniref_env")
