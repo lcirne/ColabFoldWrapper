@@ -16,8 +16,6 @@ import numpy as np
 import data_engine as engine
 
 # ---- Global Variables ----
-MOD_COUNTS_FILEPATH = "/gpfs1/home/l/c/lcirne/ColabFoldWrapper/mod_counts.json"
-
 num_iterations = 0
 
 # Setters for global vars
@@ -328,6 +326,16 @@ def get_from_current_job(jobs_file, items) -> list:
         print("###### JSON FILE NOT FOUND ######")
     return 0
 
+def run_experimental_function(args):
+    match args.experimental_data.lower():
+        case "fret":
+            if not file_eff_dict:
+                return ValueError
+            y_exp = args.fret_mean if args.fret_mean else 0.291
+            sigma = args.fret_stdev if args.fret_stdev else 0.083
+            n = args.fret_n if args.fret_n else None
+            try:
+                selected, bins, bin_centers = build_fret_distribution()
 
 def filter_output(run_number, jobs, script_path, n):
     """
@@ -401,13 +409,14 @@ def filter_output(run_number, jobs, script_path, n):
 
     distances = old_iteration_distances | current_iteration_distances
 
-    # Execute algorithm to determine which files to extract from distances
-    # and add to included_distances to fit a normal distribution
-    # Remember to normalize data points
-    # Duplicate / discard templates if necessary to fit proper distribution.
+    # IF fret flag is on:
+    # obtain y_exp and sigma from flag args
+    # pass to build_distribution along with fret flag
     y_exp = 0.291
     sigma = 0.083
-    included_distances, bins, bin_centers, mod_count = engine.build_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
+    included_distances, bins, bin_centers = engine.build_fret_distribution(file_eff_dict=distances, mean=y_exp, std=sigma, n=n)
+    # ELSE:
+    # pass other experimental data flag and args to build_distribution
 
     # Plot and save original distances using bins from build_distribution
     plot_and_save_distances(current_iteration_distances, run_number, bins, n)
@@ -473,7 +482,6 @@ def filter_output(run_number, jobs, script_path, n):
         # Clear ouput directory
         if run_number < num_iterations - 1:
             clear_directory(outputdir)
-    return mod_count
 
 
 def run_distance_finder(structure_file, p1, p2):
@@ -612,13 +620,10 @@ def main():
     print(">>> ATTEMPTING TO RUN COLABFOLD\n")
     outputdir_container = f"{outputdir}-container"
     n = int(n) # n = number of templates passed as input through iterations
-    mod_counts = {outputdir: {}}
 
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
     #subprocess.run(["cd", outputdir_container])
-    #mods = os.path.abspath("mod_counts.json")
-    mods = MOD_COUNTS_FILEPATH
 
     for run_number in range(num_iterations):
         """
@@ -634,15 +639,14 @@ def main():
         print("-"*30)
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        iteration_mod_count = filter_output(run_number, jobs, script_path, n)
-        mod_counts[outputdir][run_number] = int(iteration_mod_count) # Ensure count is NOT np.int64
+        # run_experimental_function(args)
+        filter_output(run_number, jobs, script_path, n)
 
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", './*distributions/', outputdir])
     subprocess.run(["rm", "-rf", outputdir_container])
     subprocess.run(["mv", output_pool, parent_dir.parent])
     subprocess.run(["rm", "-rf", parent_dir])
-    append_mods_json(mods, mod_counts)
 
 if __name__ == '__main__':
     main()

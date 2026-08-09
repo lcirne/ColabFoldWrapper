@@ -136,7 +136,7 @@ def graph_output_accuracy_bar(efficiencies: dict, bins=0.0083, graph_name=None, 
     return plot_name
 
 
-def build_distribution(
+def build_fret_distribution(
     file_eff_dict: dict,
     mean: float,
     std: float,
@@ -203,7 +203,6 @@ def build_distribution(
     selected = {}
     dupe_counter = defaultdict(int)
 
-    mod_count = 0
     for bidx, desired_count in enumerate(target_counts):
         #print(f"desired_count: {desired_count}")
         available_files = bin_to_files.get(bidx, [])
@@ -214,13 +213,11 @@ def build_distribution(
         if len(available_files) >= desired_count:
             # Too many files, sample down
             chosen = random.sample(available_files, desired_count)
-            mod_count += len(available_files) - desired_count
         else:
             # Too few files, duplicate as needed
             multiplier = -(-desired_count // len(available_files))  # ceiling division
             extended = available_files * multiplier
             chosen = random.sample(extended, desired_count)
-            mod_count += desired_count - len(available_files)
 
         # Add chosen pairs with dupe suffixes if needed
 
@@ -235,4 +232,4 @@ def build_distribution(
         #print(len(chosen))
         #print(len(selected))
 
-    return selected, bins, bin_centers, mod_count
+    return selected, bins, bin_centers
