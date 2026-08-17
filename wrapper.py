@@ -326,16 +326,6 @@ def get_from_current_job(jobs_file, items) -> list:
         print("###### JSON FILE NOT FOUND ######")
     return 0
 
-def run_experimental_function(args):
-    match args.experimental_data.lower():
-        case "fret":
-            if not file_eff_dict:
-                return ValueError
-            y_exp = args.fret_mean if args.fret_mean else 0.291
-            sigma = args.fret_stdev if args.fret_stdev else 0.083
-            n = args.fret_n if args.fret_n else None
-            try:
-                selected, bins, bin_centers = build_fret_distribution()
 
 def filter_output(run_number, jobs, script_path, n):
     """
@@ -482,6 +472,11 @@ def filter_output(run_number, jobs, script_path, n):
         # Clear ouput directory
         if run_number < num_iterations - 1:
             clear_directory(outputdir)
+
+
+def run_ibme():
+    """Run the ibme baysian inferencing protocol"""
+    pass
 
 
 def run_distance_finder(structure_file, p1, p2):
@@ -639,8 +634,9 @@ def main():
         print("-"*30)
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        # run_experimental_function(args)
-        filter_output(run_number, jobs, script_path, n)
+        #filter_output(run_number, jobs, script_path, n)
+        run_ibme()
+        # some ibme post processing here
 
     subprocess.run(["mv", "./iterations/", outputdir])
     subprocess.run(["mv", './*distributions/', outputdir])
