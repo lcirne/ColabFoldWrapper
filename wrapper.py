@@ -339,7 +339,7 @@ def filter_output(run_number, jobs, script_path, n):
     """
     # Load json and obtain outputdir and temp_dir
     outputdir, temp_dir = get_from_current_job(jobs, ["outputdir", "temp_dir"])
-    print(outputdir)
+    #print(outputdir)
 
     # 1. Create the pool dir
     output_path = Path(outputdir)
@@ -475,7 +475,28 @@ def filter_output(run_number, jobs, script_path, n):
 
 
 def run_ibme():
-    """Run the ibme baysian inferencing protocol"""
+    """
+    Run the ibme baysian inferencing protocol
+
+    Requirements
+    nat sort package for python env?
+
+
+    -ibme_af_v2.py
+    -BME.py
+    -BME_tools.py
+    -iBME_script.py
+
+    -pepsi saxs installed on vac: https://team.inria.fr/nano-d/software/pepsi-saxs/
+    --run using abs path to pepsi install with the pepsi_path cli flag
+
+    -grid.txt file: 1 0.9 1.2
+    -experimental data file: https://www.sasbdb.org/data/SASDQJ7/
+    -directory with pdb's
+
+    -output file from iBME_script - modify file save name to be static in save_weights function
+
+    """
     pass
 
 
