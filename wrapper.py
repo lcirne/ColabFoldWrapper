@@ -496,18 +496,42 @@ def run_ibme(parent_dir):
 
     -output file from iBME_script - modify file save name to be static in save_weights function
 
-    """
-    ibme_args = {}
-    ibme_args["structure_path"] = output_pool_path
-    ibme_args["pepsi_path"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/Pepsi-SAXS"
-    ibme_args["dro"] = 0
-    ibme_args["r0"] = 0
-    ibme_args["grid_line"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt"
-    ibme_args["theta"] = 1
-    ibme_args["experimental_path"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASDQJ7.dat"
-    ibme_args["save_path"] = parent_dir
-    pass
+    -------------------------------------------------
+    ibme_af_v2.py script args:
 
+    parser.add_argument("structure_path", type=str)
+    parser.add_argument("pepsi_path", type=str)
+    parser.add_argument("dro", type=str)
+    parser.add_argument("r0", type=str)
+    parser.add_argument("grid_line", type=str) #index for grid file must be 1, not 0
+    parser.add_argument("theta", type=float)
+    parser.add_argument("experiment_path", type=str)
+    parser.add_argument("save_path", type=str)
+    -------------------------------------------------
+    """
+    script_path = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/ibme_af_v2.py"
+
+    ibme_args = {
+        "--structure-path": output_pool_path,
+        "--pepsi-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/Pepsi-SAXS",
+        "--dro": 0,
+        "--r0": 0,
+        "--grid-line": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt",
+        "--theta": 1,
+        "--experiment-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASDQJ7.dat",
+        "--save-path": parent_dir,
+    }
+
+    cmd = [sys.executable, script_path]
+
+    for flag, value in ibme_args.items():
+        # .extend applies the append function to each item passed in the enclose iterable
+        # roughly translates to:
+        # cmd.append(flag)
+        # cmd.append(str(value))
+        cmd.extend([flag, str(value)])
+
+    subprocess.run(cmd, check=True)
 
 def run_distance_finder(structure_file, p1, p2):
     """
