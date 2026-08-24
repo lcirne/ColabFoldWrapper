@@ -474,7 +474,7 @@ def filter_output(run_number, jobs, script_path, n):
             clear_directory(outputdir)
 
 
-def run_ibme():
+def run_ibme(parent_dir):
     """
     Run the ibme baysian inferencing protocol
 
@@ -497,6 +497,15 @@ def run_ibme():
     -output file from iBME_script - modify file save name to be static in save_weights function
 
     """
+    ibme_args = {}
+    ibme_args["structure_path"] = output_pool_path
+    ibme_args["pepsi_path"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/Pepsi-SAXS"
+    ibme_args["dro"] = 0
+    ibme_args["r0"] = 0
+    ibme_args["grid_line"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt"
+    ibme_args["theta"] = 1
+    ibme_args["experimental_path"] = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASDQJ7.dat"
+    ibme_args["save_path"] = parent_dir
     pass
 
 
@@ -639,7 +648,6 @@ def main():
 
     # Create output directory container and cd into it
     subprocess.run(["mkdir", "-p", outputdir_container])
-    #subprocess.run(["cd", outputdir_container])
 
     for run_number in range(num_iterations):
         """
@@ -656,7 +664,7 @@ def main():
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
         #filter_output(run_number, jobs, script_path, n)
-        run_ibme()
+        run_ibme(parent_dir)
         # some ibme post processing here
 
     subprocess.run(["mv", "./iterations/", outputdir])
