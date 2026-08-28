@@ -474,7 +474,7 @@ def filter_output(run_number, jobs, script_path, n):
             clear_directory(outputdir)
 
 
-def run_ibme(parent_dir):
+def run_ibme(parent_dir, output_pool):
     """
     Run the ibme baysian inferencing protocol
 
@@ -512,12 +512,12 @@ def run_ibme(parent_dir):
     script_path = "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/ibme_af_v2.py"
 
     ibme_args = {
-        "--structure-path": output_pool_path,
+        "--structure-path": output_pool,
         "--pepsi-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/Pepsi-SAXS",
-        "--dro": 0,
-        "--r0": 0,
+        "--dro": -6.68,
+        "--r0": 0.85,
         "--grid-line": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt",
-        "--theta": 1,
+        "--theta": 1000,
         "--experiment-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASDQJ7.dat",
         "--save-path": parent_dir,
     }
@@ -529,7 +529,8 @@ def run_ibme(parent_dir):
         # roughly translates to:
         # cmd.append(flag)
         # cmd.append(str(value))
-        cmd.extend([flag, str(value)])
+        #cmd.extend([flag, str(value)])
+        cmd.append(str(value))
 
     subprocess.run(cmd, check=True)
 
@@ -611,10 +612,12 @@ def main():
     parser = argparse.ArgumentParser()
 
     # ColabFold_batch flags
+    """
     parser.add_argument("--pair-mode",
                         required=True,
                         help="ColabFold_batch required flag.",
                         default="unpaired_paired")
+    Future args
     parser.add_argument("--templates",
                         action="store_true",
                         required=True,
@@ -634,13 +637,14 @@ def main():
                         required=True)
 
     # Wrapper flags
-    parser.add_argument("--no-templates",
-                        action="store_true",
-                        help="Turn off custom templates for the inital iteration of ColabFold Wrapper")
     parser.add_argument("--num-iterations",
                         default=10)
     parser.add_argument("--num-n", "-n",
                         required=True)
+    """
+    parser.add_argument("--no-templates",
+                        action="store_true",
+                        help="Turn off custom templates for the inital iteration of ColabFold Wrapper")
     # ------------------------------------------------------------
     args = parser.parse_args()
     no_templates = getattr(args, "no_templates", False)
@@ -688,7 +692,7 @@ def main():
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
         #filter_output(run_number, jobs, script_path, n)
-        run_ibme(parent_dir)
+        run_ibme(parent_dir, output_pool="output_pool")
         # some ibme post processing here
 
     subprocess.run(["mv", "./iterations/", outputdir])
