@@ -513,7 +513,7 @@ def run_ibme(parent_dir, output_pool):
 
     ibme_args = {
         "--structure-path": output_pool,
-        "--pepsi-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/Pepsi-SAXS",
+        "--pepsi-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/",
         "--dro": -6.68,
         "--r0": 0.85,
         "--grid-line": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt",
