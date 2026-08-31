@@ -28,8 +28,16 @@ exp_rg = 4.6
 def run_pepsi(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro, r0):
 
     #Run Pepsi SAXS on input structures
-    run = subprocess.run([f"{pepsi_path}/do_gp_af.sh", structure_path, experiment_path, "0", "1", grid_line, save_path],
+    run = subprocess.run([f"{pepsi_path}do_gp_af.sh", structure_path, experiment_path, "0", "1", grid_line, save_path],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    # --------------- Debugging prints ---------------
+    print("----- do_gp_af.sh STDOUT -----")
+    print(run.stdout)
+
+    print("----- do_gp_af.sh STDERR -----")
+    print(run.stderr)
+    # ------------------------------------------------
 
     if run.returncode == 0:
         print(f"Pepsi SAXS simulation at dro={dro} and r0={r0} ran successfully with return code {run.returncode}")
@@ -55,7 +63,8 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     with open(calc_path, 'w') as f:
         f.write("# DATA=SAXS\n")
     df.to_csv(calc_path, mode='a', header=False, index=False, sep=' ')
-    gp_out_dir = os.path.join(save_path, "GP1")
+    #gp_out_dir = os.path.join(save_path, "GP1")
+    gp_out_dir = os.path.join(ibme_out_dir, "GP1")
 
     chi2b = chi2a = phi = np.nan 
     try:

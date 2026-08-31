@@ -97,7 +97,7 @@ def set_experiment(saxs_path, exp_path, trun_path):
     sample_df = pd.read_csv(sample_saxs, sep='\s+', header=None)
     sim_length = len(sample_df.columns) - 1
 
-    exp_pd = pd.read_csv(exp_path, header=None, sep='\s+')
+    exp_pd = pd.read_csv(exp_path, header=None, sep='\s+', skiprows=3)
     exp_trun = exp_pd.iloc[:sim_length]
     exp_trun.to_csv(trun_path, header=False, index=False, sep=' ')
 
