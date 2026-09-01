@@ -65,14 +65,15 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     df.to_csv(calc_path, mode='a', header=False, index=False, sep=' ')
     #gp_out_dir = os.path.join(save_path, "GP1")
     gp_out_dir = os.path.join(ibme_out_dir, "GP1")
+    os.makedirs(gp_out_dir, exist_ok=True)
 
     chi2b = chi2a = phi = np.nan 
     try:
         # Run iBME
-        iBME_script.iBMEf(trun_path, calc_path, args.theta, f"{run_fol}/")
+        iBME_script.iBMEf(trun_path, calc_path, args.theta, ibme_out_dir)
 
         # Parse Logs
-        logs = glob.glob(os.path.join(run_fol, "_ibme_*.log"))
+        logs = glob.glob(os.path.join(ibme_out_dir, "_ibme_*.log"))
         logs_sorted = sorted(logs, key=lambda x: int(re.search(r"_ibme_(\d+)\.log", x).group(1)))
         log_file = logs_sorted[-1] if logs_sorted else None
 
