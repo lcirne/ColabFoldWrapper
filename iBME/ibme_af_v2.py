@@ -117,7 +117,7 @@ def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro,
     ##Analysis
 
     #Save posterior weights
-    print(f"Saving posterior weights to {run_fol}/structure_weights_sorted_{dro}_{r0}.txt...")
+    print(f"Saving posterior weights to {ibme_out_dir}/structure_weights_sorted_{dro}_{r0}.txt...")
     weights_path = ibme_tools.save_weights(ibme_out_dir, structure_path, grid_line, dro, r0)
 
     gp0_dir = os.path.join(save_path, "GP1")
