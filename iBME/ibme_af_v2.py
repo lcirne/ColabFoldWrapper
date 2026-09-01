@@ -98,7 +98,7 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     frames = pd.DataFrame(rows, columns=["idx", "d_rho", "r0", "CHI2_before", "CHI2_after", "PHI_eff"])
     results.append(frames)
 
-    return str(run_fol), results
+    return str(ibme_out_dir), results
 
 def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro, r0, theta):
 
@@ -108,7 +108,7 @@ def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro,
 
     ##Run iBME
     print(f"Running iBME at dro={dro} and r0={r0}...")
-    run_fol, results = run_ibme(structure_path, experiment_path, theta, save_path, dro, r0)
+    ibme_out_dir, results = run_ibme(structure_path, experiment_path, theta, save_path, dro, r0)
 
     #results_sorted = natsorted(results, key=lambda x: x[0])
     all_pdbs = glob.glob(os.path.join(structure_path, "*.pdb"))
@@ -118,7 +118,7 @@ def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro,
 
     #Save posterior weights
     print(f"Saving posterior weights to {run_fol}/structure_weights_sorted_{dro}_{r0}.txt...")
-    weights_path = ibme_tools.save_weights(run_fol, structure_path, grid_line, dro, r0)
+    weights_path = ibme_tools.save_weights(ibme_out_dir, structure_path, grid_line, dro, r0)
 
     gp0_dir = os.path.join(save_path, "GP1")
     compiled_calc_path = os.path.join(gp0_dir, "calc_saxs.txt")
