@@ -53,6 +53,7 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     #Create output directory
     run_fol = f"iBME_dro_{dro}_r0_{r0}_theta_{theta}"
     ibme_out_dir = os.path.join(save_path, run_fol)
+    print(f'ibme_out_dir: {ibme_out_dir}')
     os.makedirs(ibme_out_dir, exist_ok=True)
 
     results = []
@@ -63,17 +64,17 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     with open(calc_path, 'w') as f:
         f.write("# DATA=SAXS\n")
     df.to_csv(calc_path, mode='a', header=False, index=False, sep=' ')
-    #gp_out_dir = os.path.join(save_path, "GP1")
-    gp_out_dir = os.path.join(ibme_out_dir, "GP1")
+    gp_out_dir = os.path.join(save_path, "GP1")
     os.makedirs(gp_out_dir, exist_ok=True)
 
-    chi2b = chi2a = phi = np.nan 
+    chi2b = chi2a = phi = np.nan
     try:
         # Run iBME
-        iBME_script.iBMEf(trun_path, calc_path, args.theta, ibme_out_dir)
+        iBME_script.iBMEf(trun_path, calc_path, args.theta, os.path.join(ibme_out_dir, run_fol))
 
         # Parse Logs
-        logs = glob.glob(os.path.join(ibme_out_dir, "_ibme_*.log"))
+        logs = glob.glob(os.path.join(ibme_out_dir, f"{run_fol}_ibme_*.log"))
+        print("logs:", logs)
         logs_sorted = sorted(logs, key=lambda x: int(re.search(r"_ibme_(\d+)\.log", x).group(1)))
         log_file = logs_sorted[-1] if logs_sorted else None
 
@@ -111,7 +112,7 @@ def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro,
     ibme_out_dir, results = run_ibme(structure_path, experiment_path, theta, save_path, dro, r0)
 
     #results_sorted = natsorted(results, key=lambda x: x[0])
-    all_pdbs = glob.glob(os.path.join(structure_path, "*.pdb"))
+    all_pdbs = glob.glob(os.path.join(structure_path, "**", "*.pdb"), recursive=True)
     pdb_names = [os.path.basename(f) for f in natsorted(all_pdbs)]
 
     ##Analysis
@@ -128,8 +129,8 @@ def main(structure_path, pepsi_path, experiment_path, save_path, grid_line, dro,
     prior_rg, post_rg = ibme_tools.cterm_grab_rg(weights_path, save_path, pdb_names)
 
     #Plot the results on a SAXS trajectory
-    print(f"Saving SAXS curve plot to {run_fol}...")
-    plot_path = ibme_tools.plot_saxs_results(compiled_calc_path, experiment_path, weights_path, run_fol, pdb_names, prior_rg, post_rg, exp_rg)
+    print(f"Saving SAXS curve plot to {ibme_out_dir}...")
+    plot_path = ibme_tools.plot_saxs_results(compiled_calc_path, experiment_path, weights_path, ibme_out_dir, pdb_names, prior_rg, post_rg, exp_rg)
     return weights_path, plot_path
 
 #####----- MAIN

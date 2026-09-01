@@ -259,7 +259,7 @@ def save_weights(ibme_out_dir, struc_path, grid_path, dro, r0):
     best_weight_file = weight_files_sorted[-1]
 
     #Get a sorted list of ALL structure names to map the weights back to the PDBs
-    all_structures = glob.glob(os.path.join(struc_path, "*.pdb"))
+    all_structures = glob.glob(os.path.join(struc_path, "**", "*.pdb"), recursive=True)
     contents = pd.DataFrame(natsorted([os.path.basename(x) for x in all_structures]))
 
     # Map and save
@@ -284,7 +284,8 @@ def save_weights(ibme_out_dir, struc_path, grid_path, dro, r0):
 
 def plot_saxs_results(compiled_calc_path, experiment_path, weights_file, save_path, pdb_names, prior_rg, post_rg, exp_rg):
     #Adapted from ensemble_fit.py
-    exp_pd = pd.read_csv(experiment_path, header=None, sep=r"\s+")
+    exp_pd = pd.read_csv(experiment_path, header=None, sep=r"\s+", skiprows=3)
+    exp_pd = exp_pd.apply(pd.to_numeric, errors="coerce").dropna()
     s = exp_pd.iloc[:, 0].values
     iq_exp = exp_pd.iloc[:, 1].values
     err_exp = exp_pd.iloc[:, 2].values if exp_pd.shape[1] > 2 else np.zeros_like(s)
@@ -329,7 +330,7 @@ def plot_saxs_results(compiled_calc_path, experiment_path, weights_file, save_pa
     post_label_text = f"Posterior rg: {post_rg:.2f} nm"
     rg_handles.append(mlines.Line2D([], [], color='none', label=post_label_text))
 
-    ax.legend(handles=rg_handles, loc='lower left', title="Radius of gyration", handlength=0, handletextpad=0)
+    ax.legend(handles=rg_handles, loc='lower left', title="Radius of gyration", handlelength=0, handletextpad=0)
 
     plot_out = os.path.join(save_path, "truncated_fit.png")
     fig.savefig(plot_out, dpi=300)

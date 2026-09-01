@@ -574,7 +574,7 @@ def run_ibme(parent_dir, output_pool):
         "--r0": 0.85,
         "--grid-line":"/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/grid.txt",
         "--theta": 1000,
-        "--experiment-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASDQJ7.dat",
+        "--experiment-path": "/gpfs1/home/l/c/lcirne/scratch/ColabFoldWrapper/iBME/SASD2N3.dat",
         "--save-path": parent_dir,
     }
 
@@ -719,11 +719,11 @@ def main():
         run_ibme(parent_dir, output_pool=output_pool)
         # some ibme post processing here
 
-    subprocess.run(["mv", "./iterations/", outputdir])
-    subprocess.run(["mv", './*distributions/', outputdir])
-    subprocess.run(["rm", "-rf", outputdir_container])
+    #subprocess.run(["mv", "./iterations/", outputdir])
+    #subprocess.run(["mv", './*distributions/', outputdir])
+    #subprocess.run(["rm", "-rf", outputdir_container])
     subprocess.run(["mv", output_pool, parent_dir.parent])
-    subprocess.run(["rm", "-rf", parent_dir])
+    #subprocess.run(["rm", "-rf", parent_dir])
 
 if __name__ == '__main__':
     main()
