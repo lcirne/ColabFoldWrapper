@@ -250,13 +250,15 @@ def duplicate_structures_by_weight(weights_path, output_pool_path, N):
             if structure_weight > 0.01:
                 dupe_counter[structure_name] = math.floor(structure_weight * N)
 
-    if dupe_counter
-    for filename, num_dupes in dupe_counter.items():
-        for i in range(num_dupes):
-            # duplicate key with new dupe-name
-            name, ext = os.path.splitext(filename)
-            dupe_filename = f"{name}_dupe{i}{ext}"
-            print(dupe_filename)
+    if dupe_counter:
+        for filename, num_dupes in dupe_counter.items():
+            for i in range(num_dupes):
+                # duplicate key with new dupe-name
+                name, ext = os.path.splitext(filename)
+                dupe_filename = f"{name}_dupe{i}{ext}"
+                print(dupe_filename)
+    else:
+        print("No structure weights high enough for duplication.")
 
 
     """
