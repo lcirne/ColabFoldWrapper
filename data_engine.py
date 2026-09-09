@@ -5,12 +5,14 @@ Functions for graphing and data analysis
 Ma Lab
 """
 
+import random
+import os
+import math
+
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import pandas as pd
 import numpy as np
-import random
-import os
 from collections import defaultdict
 
 
@@ -233,3 +235,31 @@ def build_fret_distribution(
         #print(len(selected))
 
     return selected, bins, bin_centers
+
+
+def duplicate_structures_by_weight(weights_path, output_pool_path, N):
+    print("---- Duplicate Function ----")
+    dupe_counter = {}
+    with open(weights_path, 'r') as file:
+        next(file)
+        for line in file:
+            line = line.strip().split()
+
+            structure_weight = float(line[1])
+            structure_name = line[2]
+            if structure_weight > 0.01:
+                dupe_counter[structure_name] = math.floor(structure_weight * N)
+
+    if dupe_counter
+    for filename, num_dupes in dupe_counter.items():
+        for i in range(num_dupes):
+            # duplicate key with new dupe-name
+            name, ext = os.path.splitext(filename)
+            dupe_filename = f"{name}_dupe{i}{ext}"
+            print(dupe_filename)
+
+
+    """
+    name, ext = os.path.splitext(fname)
+    new_fname = f"{name}_dupe{dupe_counter[fname]}{ext}"
+    """

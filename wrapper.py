@@ -709,20 +709,37 @@ def main():
             script_path = i0_script_path
         else:
             script_path = iterations_script_path
+
         print("-"*30)
         print("Running script from: ", script_path)
         print("-"*30)
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
-        #filter_output(run_number, jobs, script_path, n)
+
         populate_output_pool(jobs, run_number)
-        run_ibme(parent_dir, output_pool=output_pool)
-        # some ibme post processing here
+        run_ibme(parent_dir=parent_dir, output_pool=output_pool)
+        engine.duplicate_structures_by_weight(
+            f"{parent_dir}/iBME_out/structure_weights_sorted.txt",
+            output_pool,
+            n
+        )
+
+        # move iBME directories to output pool iteration before next run
+        #subprocess.run([
+        #    "mv",
+        #    str(parent_dir / "GP1"),
+        #    str(output_pool / f"iteration{run_number}")
+        #], check=True)
+        #subprocess.run([
+        #    "mv",
+        #    str(parent_dir / "iBME_out"),
+        #    str(output_pool / f"iteration{run_number}")
+        #], check=True)
 
     #subprocess.run(["mv", "./iterations/", outputdir])
     #subprocess.run(["mv", './*distributions/', outputdir])
     #subprocess.run(["rm", "-rf", outputdir_container])
-    subprocess.run(["mv", output_pool, parent_dir.parent])
+    #subprocess.run(["mv", output_pool, parent_dir.parent])
     #subprocess.run(["rm", "-rf", parent_dir])
 
 if __name__ == '__main__':
