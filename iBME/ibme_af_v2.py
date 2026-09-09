@@ -51,7 +51,8 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
     trun_path = ibme_tools.set_experiment(save_path, experiment_path, os.path.join(exp_parent, "exp_trun.dat"))
 
     #Create output directory
-    run_fol = f"iBME_dro_{dro}_r0_{r0}_theta_{theta}"
+    #run_fol = f"iBME_dro_{dro}_r0_{r0}_theta_{theta}"
+    run_fol = "iBME_out"
     ibme_out_dir = os.path.join(save_path, run_fol)
     print(f'ibme_out_dir: {ibme_out_dir}')
     os.makedirs(ibme_out_dir, exist_ok=True)
@@ -74,7 +75,6 @@ def run_ibme(structure_path, experiment_path, theta, save_path, dro, r0):
 
         # Parse Logs
         logs = glob.glob(os.path.join(ibme_out_dir, f"{run_fol}_ibme_*.log"))
-        print("logs:", logs)
         logs_sorted = sorted(logs, key=lambda x: int(re.search(r"_ibme_(\d+)\.log", x).group(1)))
         log_file = logs_sorted[-1] if logs_sorted else None
 
