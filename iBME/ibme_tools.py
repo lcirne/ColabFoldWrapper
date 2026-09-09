@@ -275,7 +275,8 @@ def save_weights(ibme_out_dir, struc_path, grid_path, dro, r0):
     opt_weight['PDB_Name'] = opt_weight.iloc[:, 0].map(contents.iloc[:, 0])
     opt_sorted = opt_weight.sort_values(by=1, ascending=False)
 
-    weights_out = os.path.join(ibme_out_dir, f'structure_weights_sorted_{dro}_{r0}.txt')
+    #weights_out = os.path.join(ibme_out_dir, f'structure_weights_sorted_{dro}_{r0}.txt')
+    weights_out = os.path.join(ibme_out_dir, f'structure_weights_sorted.txt')
     opt_sorted.to_csv(weights_out, index=None, sep='\t')
 
     print(f"Success! Top structure weights saved to: {weights_out}")
