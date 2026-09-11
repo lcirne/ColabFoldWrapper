@@ -8,6 +8,8 @@ Ma Lab
 import random
 import os
 import math
+import glob
+import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib import ticker
@@ -237,7 +239,7 @@ def build_fret_distribution(
     return selected, bins, bin_centers
 
 
-def duplicate_structures_by_weight(weights_path, output_pool_path, N):
+def duplicate_structures_by_weight(weights_path, output_pool_path, template_directory_path, N):
     print("---- Duplicate Function ----")
     dupe_counter = {}
     with open(weights_path, 'r') as file:
@@ -252,16 +254,25 @@ def duplicate_structures_by_weight(weights_path, output_pool_path, N):
 
     if dupe_counter:
         for filename, num_dupes in dupe_counter.items():
+            # glob returns list of length one containing the target file
+            filepath = glob.glob(f"{output_pool_path}/iteration*/{filename}")[0]
+
+            # find the file in output_pool_path
+            # copy it into the template directory
+            subprocess.run(["cp", f"{filepath}", f"{template_directory_path}/{filename}", shell=True])
+
             for i in range(num_dupes):
                 # duplicate key with new dupe-name
                 name, ext = os.path.splitext(filename)
                 dupe_filename = f"{name}_dupe{i}{ext}"
-                print(dupe_filename)
+                # duplicate file in template_directory_path
+                subprocess.run(["cp", f"{template_directory_path}/{filename}", f"{template_directory_path}/{dupe_filename}", shell=True])
     else:
         print("No structure weights high enough for duplication.")
 
+    print("--------------- Walking template directory ---------------")
+    for root, dirs, files in os.walk(template_directory_path):
+        for file in files:
+            print(files)
+    print("----------------------------------------------------------")
 
-    """
-    name, ext = os.path.splitext(fname)
-    new_fname = f"{name}_dupe{dupe_counter[fname]}{ext}"
-    """

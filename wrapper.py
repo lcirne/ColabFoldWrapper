@@ -685,7 +685,7 @@ def main():
                 file.write(line + "\n")
 
     # Remove output pool from any previous wrapper run
-    n, outputdir = get_from_current_job(jobs, ["n", "outputdir"])
+    n, outputdir, temp_dir = get_from_current_job(jobs, ["n", "outputdir", "temp_dir"])
     output_path = Path(outputdir)
     parent_dir = output_path.parent
     print(f"RUNNING FROM PARENT DIR: {parent_dir}")
@@ -721,6 +721,7 @@ def main():
         engine.duplicate_structures_by_weight(
             f"{parent_dir}/iBME_out/structure_weights_sorted.txt",
             output_pool,
+            temp_dir,
             n
         )
 
