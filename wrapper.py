@@ -716,14 +716,16 @@ def main():
         os.chmod(script_path, 0o755)
         subprocess.run([script_path], check=True)
 
-        populate_output_pool(jobs, run_number)
-        run_ibme(parent_dir=parent_dir, output_pool=output_pool)
-        engine.duplicate_structures_by_weight(
-            f"{parent_dir}/iBME_out/structure_weights_sorted.txt",
-            output_pool,
-            temp_dir,
-            n
-        )
+        # if this is not the last iteration, execute iBME
+        if run_number < num_iterations-1:
+            populate_output_pool(jobs, run_number)
+            run_ibme(parent_dir=parent_dir, output_pool=output_pool)
+            engine.duplicate_structures_by_weight(
+                f"{parent_dir}/iBME_out/structure_weights_sorted.txt",
+                output_pool,
+                temp_dir,
+                n
+            )
 
         # move iBME directories to output pool iteration before next run
         #subprocess.run([
